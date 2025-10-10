@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="assets/crucible.svg" alt="Crucible" width="150"/>
+  <img src="assets/crucible_framework.svg" alt="Crucible Framework" width="150"/>
 </p>
 
-# Crucible Framework
+# CrucibleFramework
 
 **A Scientifically-Rigorous Infrastructure for LLM Reliability and Performance Research**
 
 [![Elixir](https://img.shields.io/badge/elixir-1.14+-purple.svg)](https://elixir-lang.org)
 [![OTP](https://img.shields.io/badge/otp-25+-red.svg)](https://www.erlang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-hexdocs-blueviolet.svg)](https://hexdocs.pm/crucible)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-blueviolet.svg)](https://hexdocs.pm/crucible_framework)
 
 ---
 
@@ -40,8 +40,8 @@ The Crucible Framework is a comprehensive infrastructure for conducting **reprod
 
 ```bash
 # Clone repository
-git clone https://github.com/North-Shore-AI/crucible.git
-cd crucible
+git clone https://github.com/North-Shore-AI/crucible_framework.git
+cd crucible_framework
 
 # Install dependencies
 mix deps.get
@@ -469,8 +469,8 @@ make clean test
 
 ```bash
 # Clone repository
-git clone https://github.com/North-Shore-AI/crucible.git
-cd crucible
+git clone https://github.com/North-Shore-AI/crucible_framework.git
+cd crucible_framework
 
 # Install dependencies
 mix deps.get
@@ -503,7 +503,7 @@ config :ensemble,
 
 # Dataset caching
 config :dataset_manager,
-  cache_dir: "~/.cache/crucible/datasets"
+  cache_dir: "~/.cache/crucible_framework/datasets"
 
 # Telemetry storage
 config :telemetry_research,
@@ -792,11 +792,11 @@ diff results/original results/reproduction
 If you use this framework in your research, please cite:
 
 ```bibtex
-@software{crucible2025,
+@software{crucible_framework2025,
   title = {Crucible Framework: Infrastructure for LLM Reliability Research},
   author = {Research Infrastructure Team},
   year = {2025},
-  url = {https://github.com/North-Shore-AI/crucible},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
   version = {0.1.0}
 }
 ```
@@ -869,9 +869,9 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ## Support
 
-- **Documentation:** https://hexdocs.pm/crucible
-- **Issues:** https://github.com/North-Shore-AI/crucible/issues
-- **Discussions:** https://github.com/North-Shore-AI/crucible/discussions
+- **Documentation:** https://hexdocs.pm/crucible_framework
+- **Issues:** https://github.com/North-Shore-AI/crucible_framework/issues
+- **Discussions:** https://github.com/North-Shore-AI/crucible_framework/discussions
 - **Email:** research@example.com
 
 ---
