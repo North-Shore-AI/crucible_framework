@@ -1,0 +1,217 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define gradients and filters -->
+  <defs>
+    <!-- Gradient for Multi-Node Distribution -->
+    <linearGradient id="distGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.25" />
+    </linearGradient>
+    
+    <!-- Gradient for High Concurrency -->
+    <linearGradient id="concGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#0ea5e9;stop-opacity:0.25" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0f172a"/>
+  
+  <!-- Title - moved down, centered between top and middle area -->
+  <text x="600" y="70" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#f1f5f9" text-anchor="middle">
+    Elixir AI Ecosystem: Concurrency &amp; Distribution Architecture
+  </text>
+  
+  <!-- Axis Labels - moved in and centered -->
+  <text x="600" y="765" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle" font-style="italic">
+    Distribution Axis: Single Node → Multi-Node Cluster
+  </text>
+  <text x="45" y="400" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle" font-style="italic" transform="rotate(-90 45 400)">
+    Concurrency Axis: Low → High
+  </text>
+  
+  <!-- Multi-Node Distribution Rectangle (Right side) -->
+  <rect x="650" y="120" width="480" height="600" 
+        fill="url(#distGrad)" 
+        stroke="#8b5cf6" 
+        stroke-width="2" 
+        rx="8"
+        filter="url(#shadow)"/>
+  <text x="890" y="150" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#a78bfa" text-anchor="middle">
+    MULTI-NODE DISTRIBUTION
+  </text>
+  
+  <!-- High Concurrency Rectangle (Top portion) -->
+  <rect x="100" y="120" width="1000" height="360" 
+        fill="url(#concGrad)" 
+        stroke="#06b6d4" 
+        stroke-width="2" 
+        rx="8"
+        filter="url(#shadow)"/>
+  <!-- HIGH CONCURRENCY text - moved right and down -->
+  <text x="330" y="165" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#38bdf8" text-anchor="middle">
+    HIGH CONCURRENCY
+  </text>
+  
+  <!-- Core Engines Label in overlap zone - NO background/border -->
+  <text x="890" y="200" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#c7d2fe" text-anchor="middle">
+    ⚡ CORE CONCURRENCY
+  </text>
+  <text x="890" y="220" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#c7d2fe" text-anchor="middle">
+    ENGINES ⚡
+  </text>
+  
+  <!-- TIER 1: Core Engines (Overlap zone) - centered horizontally, adjusted spacing -->
+  <g id="tier1">
+    <rect x="740" y="250" width="140" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6"/>
+    <text x="810" y="270" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#e9d5ff" text-anchor="middle">Citadel</text>
+    <text x="810" y="287" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Distributed Agent</text>
+    <text x="810" y="299" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Runtime</text>
+    
+    <rect x="900" y="250" width="160" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6"/>
+    <text x="980" y="270" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#e9d5ff" text-anchor="middle">Foundation/Jido</text>
+    <text x="980" y="287" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">OTP Services &amp;</text>
+    <text x="980" y="299" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Coordination</text>
+    
+    <rect x="740" y="315" width="140" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6"/>
+    <text x="810" y="335" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#e9d5ff" text-anchor="middle">Axon</text>
+    <text x="810" y="352" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Agent</text>
+    <text x="810" y="364" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Orchestration</text>
+    
+    <rect x="900" y="315" width="160" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6"/>
+    <text x="980" y="335" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#e9d5ff" text-anchor="middle">cluster_test</text>
+    <text x="980" y="352" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Distributed</text>
+    <text x="980" y="364" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Testing</text>
+    
+    <rect x="740" y="380" width="140" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6"/>
+    <text x="810" y="400" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#e9d5ff" text-anchor="middle">Assessor</text>
+    <text x="810" y="417" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Parallel Job</text>
+    <text x="810" y="429" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Execution</text>
+  </g>
+  
+  <!-- TIER 2: High Concurrency, Single Node - text moved up in boxes -->
+  <g id="tier2-single-node">
+    <rect x="120" y="220" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="210" y="237" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">DSPex</text>
+    <text x="210" y="253" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Parallel Evaluation</text>
+    
+    <rect x="320" y="220" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="410" y="237" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">Ensemble</text>
+    <text x="410" y="253" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Multi-Model Voting</text>
+    
+    <rect x="120" y="280" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="210" y="297" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">Hedging</text>
+    <text x="210" y="313" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Request Duplication</text>
+    
+    <rect x="320" y="280" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="410" y="297" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">ResearchHarness</text>
+    <text x="410" y="313" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Parallel Experiments</text>
+    
+    <rect x="120" y="340" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="210" y="357" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">Snakepit</text>
+    <text x="210" y="373" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Python Worker Pool</text>
+    
+    <rect x="320" y="340" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="410" y="357" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">pipeline_ex</text>
+    <text x="410" y="373" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Parallel Orchestration</text>
+    
+    <rect x="120" y="400" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="210" y="417" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">AITrace</text>
+    <text x="210" y="433" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Event Stream Processing</text>
+    
+    <rect x="320" y="400" width="180" height="45" fill="#083344" stroke="#06b6d4" stroke-width="1.5" rx="6"/>
+    <text x="410" y="417" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#67e8f9" text-anchor="middle">TelemetryResearch</text>
+    <text x="410" y="433" font-family="Arial, sans-serif" font-size="10" fill="#a5f3fc" text-anchor="middle">Concurrent Experiments</text>
+  </g>
+  
+  <!-- TIER 3: Concurrency-Aware - text moved up -->
+  <g id="tier3">
+    <rect x="520" y="340" width="110" height="40" fill="#164e63" stroke="#22d3ee" stroke-width="1.5" rx="6"/>
+    <text x="575" y="356" font-family="Arial, sans-serif" font-size="12" font-weight="500" fill="#a5f3fc" text-anchor="middle">LLM Clients</text>
+    <text x="575" y="369" font-family="Arial, sans-serif" font-size="9" fill="#67e8f9" text-anchor="middle">(claude/gemini)</text>
+    
+    <rect x="520" y="390" width="110" height="40" fill="#164e63" stroke="#22d3ee" stroke-width="1.5" rx="6"/>
+    <text x="575" y="406" font-family="Arial, sans-serif" font-size="12" font-weight="500" fill="#a5f3fc" text-anchor="middle">ALTAR</text>
+    <text x="575" y="419" font-family="Arial, sans-serif" font-size="9" fill="#67e8f9" text-anchor="middle">(Tool Protocol)</text>
+  </g>
+  
+  <!-- TIER 3: Distribution-Aware - moved down -->
+  <g id="tier3-dist">
+    <rect x="680" y="520" width="200" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6" opacity="0.6"/>
+    <text x="780" y="540" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e9d5ff" text-anchor="middle">ALTAR GRID</text>
+    <text x="780" y="557" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">Distributed Tool Registry</text>
+    
+    <rect x="900" y="520" width="200" height="50" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.5" rx="6" opacity="0.6"/>
+    <text x="1000" y="540" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e9d5ff" text-anchor="middle">ElixirScope</text>
+    <text x="1000" y="557" font-family="Arial, sans-serif" font-size="10" fill="#c4b5fd" text-anchor="middle">System-Wide Profiling</text>
+  </g>
+  
+  <!-- TIER 4: Utility Libraries -->
+  <rect x="100" y="520" width="520" height="200" 
+        fill="#1e293b" 
+        stroke="#475569" 
+        stroke-width="2" 
+        rx="8"
+        opacity="0.8"/>
+  <text x="360" y="550" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    UTILITY LIBRARIES (Minimal Concurrency)
+  </text>
+  
+  <!-- Utility boxes - text centered vertically -->
+  <g id="tier4">
+    <rect x="120" y="575" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="190" y="598" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">Sinter/Perimeter</text>
+    
+    <rect x="275" y="575" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="345" y="598" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">JsonRemedy</text>
+    
+    <rect x="430" y="575" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="500" y="598" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">Bench</text>
+    
+    <rect x="120" y="628" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="190" y="651" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">CausalTrace</text>
+    
+    <rect x="275" y="628" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="345" y="651" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">DatasetManager</text>
+    
+    <rect x="430" y="628" width="140" height="38" fill="#334155" stroke="#64748b" stroke-width="1" rx="4"/>
+    <text x="500" y="651" font-family="Arial, sans-serif" font-size="12" fill="#cbd5e1" text-anchor="middle">Playwriter</text>
+  </g>
+  
+  <!-- Bottom right boxes - all same width, Strategic Advantage smaller -->
+  <g id="bottom-right">
+    <!-- Strategic Advantage Box - smaller width, text centered vertically -->
+    <rect x="680" y="590" width="200" height="110" fill="#1e293b" stroke="#6366f1" stroke-width="2" rx="6"/>
+    <text x="780" y="615" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#818cf8" text-anchor="middle">💡 Strategic Advantage</text>
+    <text x="780" y="638" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">~70% of ecosystem is</text>
+    <text x="780" y="656" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">concurrency-intensive</text>
+    <text x="780" y="678" font-family="Arial, sans-serif" font-size="10" fill="#c7d2fe" text-anchor="middle">vs. Python's external</text>
+    <text x="780" y="694" font-family="Arial, sans-serif" font-size="10" fill="#c7d2fe" text-anchor="middle">orchestration overhead</text>
+    
+    <!-- Legend - moved over, same width as Strategic Advantage -->
+    <rect x="900" y="590" width="200" height="110" fill="#1e293b" stroke="#475569" stroke-width="1" rx="6" opacity="0.9"/>
+    <text x="1000" y="615" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#f1f5f9" text-anchor="middle">Legend</text>
+    
+    <rect x="915" y="630" width="15" height="15" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="940" y="642" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">Core Engines (Both)</text>
+    
+    <rect x="915" y="655" width="15" height="15" fill="#083344" stroke="#06b6d4" stroke-width="1"/>
+    <text x="940" y="667" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">High Concurrency</text>
+    
+    <rect x="915" y="680" width="15" height="15" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1" opacity="0.6"/>
+    <text x="940" y="692" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">Multi-Node</text>
+  </g>
+</svg>
