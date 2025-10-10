@@ -650,8 +650,10 @@ When sharing datasets, include comprehensive documentation:
 
 ## Usage
 
+Load your dataset:
+
 ```elixir
-{:ok, dataset} = DatasetManager.load(:your_dataset)
+dataset = DatasetManager.load(:your_dataset)
 ```
 
 ## Citation

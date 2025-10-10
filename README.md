@@ -918,8 +918,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 - [ ] Extended documentation
 - [ ] Tutorial videos
 
-**See [ROADMAP.md](./ROADMAP.md) for detailed plans.**
-
 ---
 
 ## FAQs

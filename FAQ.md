@@ -1711,9 +1711,10 @@ See CONTRIBUTING.md for detailed guidelines.
 
 ## Code Sample
 
+Minimal example to reproduce the issue:
+
 ```elixir
-# Minimal code to reproduce
-{:ok, result} = Ensemble.predict("test")
+result = Ensemble.predict("test")
 ```
 
 ## Error Message
