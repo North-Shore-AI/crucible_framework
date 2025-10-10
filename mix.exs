@@ -42,6 +42,8 @@ defmodule CrucibleFramework.MixProject do
       homepage_url: @source_url,
       extras: extras(),
       groups_for_extras: groups_for_extras(),
+      assets: %{"assets" => "assets"},
+      logo: "assets/crucible_framework.svg",
       before_closing_head_tag: &mermaid_config/1
     ]
   end
@@ -60,7 +62,8 @@ defmodule CrucibleFramework.MixProject do
       "DATASETS.md",
       "CONTRIBUTING.md",
       "FAQ.md",
-      "PUBLICATIONS.md"
+      "PUBLICATIONS.md",
+      "CHANGELOG.md"
     ]
   end
 
@@ -88,6 +91,9 @@ defmodule CrucibleFramework.MixProject do
       ],
       Research: [
         "PUBLICATIONS.md"
+      ],
+      "Release Notes": [
+        "CHANGELOG.md"
       ]
     ]
   end
@@ -132,7 +138,7 @@ defmodule CrucibleFramework.MixProject do
       name: "crucible_framework",
       description: description(),
       files:
-        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md mix.exs LICENSE assets),
+        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE assets),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
