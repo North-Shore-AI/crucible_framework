@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -58,6 +58,7 @@ defmodule CrucibleFramework.MixProject do
       "HEDGING_GUIDE.md",
       "STATISTICAL_TESTING.md",
       "CAUSAL_TRANSPARENCY.md",
+      "ADVERSARIAL_ROBUSTNESS.md",
       "INSTRUMENTATION.md",
       "DATASETS.md",
       "CONTRIBUTING.md",
@@ -83,6 +84,7 @@ defmodule CrucibleFramework.MixProject do
         "HEDGING_GUIDE.md",
         "STATISTICAL_TESTING.md",
         "CAUSAL_TRANSPARENCY.md",
+        "ADVERSARIAL_ROBUSTNESS.md",
         "INSTRUMENTATION.md",
         "DATASETS.md"
       ],
@@ -138,7 +140,7 @@ defmodule CrucibleFramework.MixProject do
       name: "crucible_framework",
       description: description(),
       files:
-        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE assets),
+        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md ADVERSARIAL_ROBUSTNESS.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE assets),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,

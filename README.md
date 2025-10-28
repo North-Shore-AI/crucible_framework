@@ -360,6 +360,62 @@ CausalTrace.open_visualization(chain)
 
 **See [CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md) for details.**
 
+### Security & Adversarial Robustness
+
+Protect your LLM systems from attacks, bias, and data quality issues with a comprehensive 4-library security stack.
+
+```elixir
+# Complete security pipeline
+{:ok, result} = SecurePipeline.process(user_input)
+
+# Automatically protects against:
+# - 21 adversarial attack types
+# - Prompt injection (24+ patterns)
+# - Bias and fairness violations
+# - Data quality issues and drift
+```
+
+**Four Security Libraries:**
+
+- **CrucibleAdversary** - 21 attack types (character, word, semantic, injection, jailbreak), defense mechanisms, robustness metrics (ASR, accuracy drop, consistency)
+- **LlmGuard** - AI firewall with 24+ prompt injection patterns, pipeline architecture, <10ms latency
+- **ExFairness** - 4 fairness metrics (demographic parity, equalized odds, equal opportunity, predictive parity), EEOC 80% rule compliance, bias mitigation
+- **ExDataCheck** - 22 data quality expectations, drift detection (KS test, PSI), outlier detection, continuous monitoring
+
+**Key Features:**
+- **21 Attack Types:** Character perturbations, prompt injection, jailbreak techniques, semantic attacks
+- **Defense Mechanisms:** Detection, filtering, sanitization with risk scoring
+- **Fairness Auditing:** 4 metrics with legal compliance (EEOC 80% rule)
+- **Data Quality:** 22 built-in expectations, distribution drift detection
+- **Production-Ready:** <30ms total security overhead, >90% test coverage
+
+**Example: Comprehensive Security Evaluation**
+
+```elixir
+# Evaluate model robustness against all attack types
+{:ok, evaluation} = CrucibleAdversary.evaluate(
+  MyModel,
+  test_set,
+  attacks: [:prompt_injection, :jailbreak_roleplay, :character_swap],
+  metrics: [:accuracy_drop, :asr, :consistency],
+  defense_mode: :strict
+)
+
+# Results:
+# - Attack Success Rate: 3.2% (target: <5%)
+# - Accuracy Drop: 6.8% (target: <10%)
+# - Fairness Compliance: ✅ Passes EEOC 80% rule
+# - Data Quality Score: 92/100
+```
+
+**See [ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md) for complete technical deep dive** including:
+- All 21 attack types with examples
+- Defense mechanisms and integration patterns
+- Fairness metrics and bias mitigation strategies
+- Data quality validation and drift detection
+- Complete security pipeline architecture
+- Links to all 4 component repositories
+
 ### ResearchHarness: Experiment Orchestration
 
 High-level DSL for defining and running complete experiments.
@@ -825,6 +881,7 @@ For specific experiments, also cite:
 - **[ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md)** - Deep dive into ensemble library, voting strategies
 - **[HEDGING_GUIDE.md](./HEDGING_GUIDE.md)** - Request hedging explained, Google's research
 - **[STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md)** - Using Bench for rigorous analysis
+- **[ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md)** - Complete security stack: 21 attacks, defenses, fairness, data quality
 - **[INSTRUMENTATION.md](./INSTRUMENTATION.md)** - TelemetryResearch complete guide
 - **[DATASETS.md](./DATASETS.md)** - Supported datasets, adding custom datasets
 - **[CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md)** - Using CausalTrace, user study protocols
