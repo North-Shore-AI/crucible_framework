@@ -7,9 +7,10 @@
 **A Scientifically-Rigorous Infrastructure for LLM Reliability and Performance Research**
 
 [![Elixir](https://img.shields.io/badge/elixir-1.14+-purple.svg)](https://elixir-lang.org)
-[![OTP](https://img.shields.io/badge/otp-25+-red.svg)](https://www.erlang.org)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/North-Shore-AI/crucible_framework/blob/main/LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-hexdocs-blueviolet.svg)](https://hexdocs.pm/crucible_framework)
+[![OTP](https://img.shields.io/badge/otp-25+-blue.svg)](https://www.erlang.org)
+[![Hex.pm](https://img.shields.io/hexpm/v/crucible_framework.svg)](https://hex.pm/packages/crucible_framework)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-purple.svg)](https://hexdocs.pm/crucible_framework)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/North-Shore-AI/crucible_framework/blob/main/LICENSE)
 
 ---
 
