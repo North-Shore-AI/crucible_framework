@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.1.3"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -9,6 +9,7 @@ defmodule CrucibleFramework.MixProject do
       app: :crucible_framework,
       version: @version,
       elixir: "~> 1.14",
+      preferred_cli_env: [dialyzer: :dev],
       deps: deps(),
       docs: docs(),
       description: description(),
@@ -21,8 +22,18 @@ defmodule CrucibleFramework.MixProject do
 
   defp deps do
     [
-      # Documentation only
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+      # Core dependency
+      {:tinkex, "~> 0.1.0"},
+
+      # Testing
+      {:mox, "~> 1.1", only: :test},
+      {:stream_data, "~> 1.0", only: [:dev, :test]},
+
+      # Documentation
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+
+      # Static analysis
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
     ]
   end
 

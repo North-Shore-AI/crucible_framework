@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-11-21
+
+### Added
+- **Tinkex Integration Layer**
+  - `Crucible.Tinkex`, `Config`, `Experiment`, `QualityValidator`, `Results`, and `Telemetry` modules for orchestrating LoRA fine-tuning, telemetry capture, and report generation
+  - Helpers for batching datasets, formatting training data, checkpoint naming, and sampling parameter management
+  - Quality validation reports and monitoring callbacks aligned with CNS3 targets
+  - Experiment management primitives for sweeps, run generation, and lifecycle transitions
+  - Result aggregation utilities with CSV export, best-run selection, and report data production
+- **LoRA Adapter Abstraction**
+  - Added `Crucible.Lora` facade plus `Crucible.Lora.Adapter` behaviour so Crucible can target any fine-tuning backend
+  - Default adapter (`Crucible.Tinkex`) now implements the behaviour and can be swapped via `config :crucible_framework, :lora_adapter, MyAdapter`
+- **Comprehensive Test Coverage**
+  - 6 new ExUnit files spanning configuration, experiments, results, telemetry, and top-level helpers
+  - Property-based fixtures via `stream_data` and mocking hooks via `mox`
+- **Dependency Support**
+  - Added `tinkex`, `mox`, and `stream_data` to `mix.exs` along with the corresponding lock entries
+
+### Changed
+- Updated README with MIT licensing, the new LoRA adapter layer overview, and reproducibility metadata for v0.1.3
+- Expanded GETTING_STARTED guide with the adapter architecture, refreshed version metadata, and Hex dependency snippets
+- Set package license metadata to MIT and documented the change across docs
+
 ## [0.1.2] - 2025-10-29
 
 ### Added

@@ -1,9 +1,9 @@
-# Getting Started: Elixir AI Research Framework
+# Getting Started: Crucible Framework
 
 **A Comprehensive Guide for Researchers New to the Framework**
 
-Version: 0.1.0
-Last Updated: 2025-10-08
+Version: 0.1.3
+Last Updated: 2025-11-21
 Target Audience: PhD students, ML researchers, scientists requiring rigorous LLM experimentation
 Estimated Reading Time: 45 minutes
 
@@ -18,20 +18,21 @@ Estimated Reading Time: 45 minutes
 5. [Your First Experiment: Step-by-Step Walkthrough](#your-first-experiment-step-by-step-walkthrough)
 6. [Understanding Your Results](#understanding-your-results)
 7. [Core Concepts](#core-concepts)
-8. [Common Patterns and Examples](#common-patterns-and-examples)
-9. [Troubleshooting](#troubleshooting)
-10. [Common Issues and Solutions](#common-issues-and-solutions)
-11. [Configuration Reference](#configuration-reference)
-12. [Next Steps](#next-steps)
-13. [Additional Resources](#additional-resources)
+8. [LoRA Adapter Layer (Tinkex Default)](#lora-adapter-layer-tinkex-default)
+9. [Common Patterns and Examples](#common-patterns-and-examples)
+10. [Troubleshooting](#troubleshooting)
+11. [Common Issues and Solutions](#common-issues-and-solutions)
+12. [Configuration Reference](#configuration-reference)
+13. [Next Steps](#next-steps)
+14. [Additional Resources](#additional-resources)
 
 ---
 
 ## Introduction
 
-### What is the Elixir AI Research Framework?
+### What is the Crucible Framework?
 
-The Elixir AI Research Framework is a scientifically-rigorous infrastructure for conducting **reproducible, statistically-valid experiments** on large language model (LLM) reliability, performance, and cost optimization. Unlike ad-hoc testing scripts, this framework provides:
+The Crucible Framework is a scientifically-rigorous infrastructure for conducting **reproducible, statistically-valid experiments** on large language model (LLM) reliability, performance, and cost optimization. Unlike ad-hoc testing scripts, this framework provides:
 
 - **Reproducibility**: Every experiment can be exactly reproduced with deterministic seeding
 - **Statistical Rigor**: 15+ statistical tests with automatic test selection and assumption checking
@@ -140,20 +141,20 @@ The framework provides cost estimation before running experiments.
 
 We provide three installation methods. Choose the one that fits your workflow.
 
-### Method 1: From GitHub (Recommended for Researchers)
+### Method 1: From GitHub (Recommended)
 
-This method gives you the full source code and examples.
+Clone the canonical repository to get the latest code, docs, and examples.
 
 **Step 1: Clone the Repository**
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/elixir_ai_research.git
-cd elixir_ai_research
+git clone https://github.com/North-Shore-AI/crucible_framework.git
+cd crucible_framework
 
 # Verify you're in the right place
 ls -la
-# You should see: apps/, config/, mix.exs, README.md
+# You should see: lib/, docs/, README.md, mix.exs
 ```
 
 **Step 2: Install Elixir and Erlang**
@@ -240,13 +241,13 @@ If all tests pass, your installation is complete!
 
 ### Method 2: From Hex (When Published)
 
-This method is simpler but provides less flexibility.
+Once the package is on Hex.pm, add it to your `mix.exs` and let Mix handle updates.
 
 ```elixir
-# In your mix.exs
+# mix.exs
 def deps do
   [
-    {:elixir_ai_research, "~> 0.1.0"}
+    {:crucible_framework, "~> 0.1.3"}
   ]
 end
 ```
@@ -255,16 +256,17 @@ end
 mix deps.get
 ```
 
-**Note**: Not yet published to Hex. Use Method 1 for now.
+> Note: the Hex package is not yet published. Track the GitHub install until an official release is announced.
 
 ### Method 3: Local Development Setup
 
-For contributors or those who want to modify the framework.
+For contributors or anyone hacking on Crucible itself.
 
 ```bash
-# Clone with development branch
-git clone -b develop https://github.com/yourusername/elixir_ai_research.git
-cd elixir_ai_research
+# Clone the development branch if you need unreleased work
+git clone https://github.com/North-Shore-AI/crucible_framework.git
+cd crucible_framework
+git checkout develop  # optional
 
 # Install dependencies including dev tools
 mix deps.get
@@ -330,7 +332,7 @@ OPENAI_API_KEY=sk-your-openai-key-here
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
 
 # Optional: PostgreSQL for persistent telemetry
-DATABASE_URL=postgresql://user:pass@localhost/elixir_ai_research_dev
+DATABASE_URL=postgresql://user:pass@localhost/crucible_framework_dev
 EOF
 
 # Add .env to .gitignore (IMPORTANT!)
@@ -375,7 +377,7 @@ config :ensemble,
 # Dataset Manager Configuration
 config :dataset_manager,
   # Where to cache downloaded datasets
-  cache_dir: Path.expand("~/.cache/elixir_ai_research/datasets"),
+  cache_dir: Path.expand("~/.cache/crucible_framework/datasets"),
 
   # Dataset versions (for reproducibility)
   dataset_versions: %{
@@ -420,7 +422,7 @@ config :logger,
 mkdir -p results checkpoints research/experiments research/output
 
 # Create dataset cache directory
-mkdir -p ~/.cache/elixir_ai_research/datasets
+mkdir -p ~/.cache/crucible_framework/datasets
 
 # Verify structure
 tree -L 2
@@ -1011,7 +1013,7 @@ If each error costs $1 to fix manually:
 ### Environment
 
 ```yaml
-framework_version: 0.1.0
+framework_version: 0.1.3
 elixir_version: 1.14.0
 erlang_version: 25.0
 dataset_version: mmlu-1.0.0
@@ -1226,7 +1228,7 @@ seed 42  # All randomness deterministic
 **2. Version Tracking**
 ```yaml
 # Automatically saved in results
-framework_version: 0.1.0
+framework_version: 0.1.3
 elixir_version: 1.14.0
 dataset_version: mmlu-1.0.0
 model_versions:
@@ -1257,6 +1259,60 @@ mix run experiments/your_experiment.exs
 diff results/original results/reproduction
 # No differences = perfect reproduction
 ```
+
+---
+
+## LoRA Adapter Layer (Tinkex Default)
+
+**New in 0.1.3:** Crucible ships an adapter-neutral LoRA interface (`Crucible.Lora`) that mediates between the framework and concrete fine-tuning backends. The bundled adapter targets the [Tinkex](https://hex.pm/packages/tinkex) SDK, but you can implement additional adapters by satisfying the `Crucible.Lora.Adapter` behaviour.
+
+### Building Blocks
+- `Crucible.Lora` – facade for experiment creation, batching, formatting, metrics, and checkpoint helpers
+- `Crucible.Tinkex.Config` – wraps API keys, base URLs, retry logic, default LoRA hyperparameters, and quality targets
+- `Crucible.Tinkex.Experiment` – declarative structure for datasets, sweeps, checkpoints, and repeat counts
+- `Crucible.Tinkex.Telemetry` – emits `[:crucible, :tinkex, ...]` events so fine-tuning runs show up alongside ResearchHarness metrics
+- `Crucible.Tinkex.QualityValidator` – enforces CNS3-derived schema/citation/entailment gates
+- `Crucible.Tinkex.Results` – aggregates training/evaluation metrics and exports CSV-ready reports
+
+### Minimal Setup
+
+```elixir
+# runtime.exs
+config :crucible_framework, :lora_adapter, Crucible.Tinkex
+
+config = Crucible.Tinkex.Config.new(
+  api_key: System.fetch_env!("TINKEX_KEY"),
+  base_url: "https://tinkex.example.com"
+)
+
+{:ok, experiment} =
+  Crucible.Lora.create_experiment(
+    name: "SciFact Claim Extractor",
+    base_model: config.default_base_model,
+    training: %{epochs: 4, batch_size: 16},
+    parameters: %{learning_rate: [1.0e-4, 2.0e-4]}
+  )
+
+Crucible.Tinkex.Telemetry.attach(experiment_id: experiment.id)
+
+experiment
+|> Crucible.Tinkex.Experiment.generate_runs()
+|> Enum.each(fn run ->
+  dataset
+  |> Crucible.Lora.batch_dataset(16)
+  |> Enum.each(fn batch ->
+    formatted = Crucible.Lora.format_training_data(batch)
+    # pass formatted batch to adapter forward/backward call
+  end)
+end)
+```
+
+### Quality Gates and Reporting
+- After evaluation completes, call `Crucible.Tinkex.QualityValidator.validate(results)` to verify schema compliance, citation accuracy, entailment, and pass rates
+- Persist checkpoints with `Crucible.Lora.checkpoint_name/2` for deterministic artifact naming
+- Build final summaries via `Crucible.Tinkex.Results.to_report_data/1` and include them in ResearchHarness experiment exports
+
+Read the README section on the LoRA adapter layer plus [INSTRUMENTATION.md](./INSTRUMENTATION.md) for telemetry wiring and PostgreSQL export guidance.
 
 ---
 
@@ -1920,8 +1976,8 @@ Connection timeout
 **Solution:**
 ```bash
 # Manually download dataset
-mkdir -p ~/.cache/elixir_ai_research/datasets
-cd ~/.cache/elixir_ai_research/datasets
+mkdir -p ~/.cache/crucible_framework/datasets
+cd ~/.cache/crucible_framework/datasets
 
 # Download from HuggingFace or source
 wget https://huggingface.co/datasets/mmlu/...
@@ -2113,7 +2169,7 @@ config :hedging,
 # =============================================================================
 config :dataset_manager,
   # Cache directory for downloaded datasets
-  cache_dir: Path.expand("~/.cache/elixir_ai_research/datasets"),
+  cache_dir: Path.expand("~/.cache/crucible_framework/datasets"),
 
   # Dataset versions (for reproducibility)
   dataset_versions: %{
@@ -2374,7 +2430,7 @@ export ANTHROPIC_API_KEY="sk-ant-your-anthropic-api-key"
 # =============================================================================
 # Database (Optional - for PostgreSQL telemetry backend)
 # =============================================================================
-export DATABASE_URL="postgresql://user:password@localhost:5432/elixir_ai_research_dev"
+export DATABASE_URL="postgresql://user:password@localhost:5432/crucible_framework_dev"
 
 # =============================================================================
 # Experiment Configuration (Optional)
@@ -2547,22 +2603,21 @@ export DISABLE_RATE_LIMITING=false
 ### Community and Support
 
 **GitHub:**
-- Issues: https://github.com/yourusername/elixir_ai_research/issues
-- Discussions: https://github.com/yourusername/elixir_ai_research/discussions
+- Issues: https://github.com/North-Shore-AI/crucible_framework/issues
+- Discussions: https://github.com/North-Shore-AI/crucible_framework/discussions
 
 **Documentation:**
-- HexDocs: https://hexdocs.pm/elixir_ai_research (when published)
-- Examples: https://github.com/yourusername/elixir_ai_research/tree/main/examples
+- HexDocs: https://hexdocs.pm/crucible_framework (when published)
+- Examples: https://github.com/North-Shore-AI/crucible_framework/tree/main/examples
 
 **Contact:**
-- Email: research@example.com
-- Twitter: @elixir_ai_research
+- Please open an issue or discussion for support/feature requests.
 
 ---
 
 ## Conclusion
 
-Congratulations! You now have everything you need to start conducting rigorous LLM reliability research with the Elixir AI Research Framework.
+Congratulations! You now have everything you need to start conducting rigorous LLM reliability research with the Crucible Framework.
 
 **Key Takeaways:**
 

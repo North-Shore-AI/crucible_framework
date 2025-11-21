@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-This comprehensive FAQ covers common questions about installation, configuration, usage, troubleshooting, research design, and publication. If you don't find your answer here, please open a discussion on GitHub.
+This comprehensive FAQ covers common questions about installation, configuration, usage, troubleshooting, research design, and publication.
 
 **Table of Contents**
 
@@ -913,7 +913,7 @@ end
 **1. Enable caching:**
 ```elixir
 config :dataset_manager,
-  cache_dir: "~/.cache/elixir_ai_research/datasets",
+  cache_dir: "~/.cache/crucible_framework/datasets",
   cache_enabled: true  # Default
 ```
 
@@ -1385,29 +1385,30 @@ diff results/original results/reproduction
 
 **In text:**
 ```latex
-We used the Elixir AI Research Framework \cite{elixir_ai_research2025}
+We used CrucibleFramework \cite{crucible_framework2025}
 for experiment orchestration and statistical analysis.
 ```
 
 **In references:**
 ```bibtex
-@software{elixir_ai_research2025,
-  title = {Elixir AI Research Framework: Infrastructure for LLM Reliability Research},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework2025,
+  title = {CrucibleFramework: Infrastructure for LLM Reliability Research},
+  author = {{North Shore AI}},
   year = {2025},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research},
-  version = {0.1.0}
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3}
 }
 ```
 
 **If using specific library extensively, also cite:**
 ```bibtex
-@software{ensemble2025,
-  title = {Ensemble: Multi-model Voting for AI Reliability},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_component2025,
+  title = {CrucibleFramework Component Library},
+  author = {{North Shore AI}},
   year = {2025},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/ensemble},
-  version = {0.1.0}
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Reference the specific module you relied on}
 }
 ```
 
@@ -1442,7 +1443,7 @@ my-experiment/
 - **Paper:** arXiv preprint
 
 **License:**
-- Code: MIT or Apache 2.0
+- Code: MIT
 - Data: CC-BY (with attribution)
 
 ---
@@ -1704,7 +1705,7 @@ See CONTRIBUTING.md for detailed guidelines.
 
 ## Environment
 
-- Framework version: 0.1.0
+- Framework version: 0.1.3
 - Elixir version: 1.17.0
 - Erlang version: 26.2.1
 - OS: Ubuntu 22.04
@@ -1728,8 +1729,6 @@ result = Ensemble.predict("test")
 
 [Any other relevant information]
 ```
-
-Submit at: https://github.com/nshkrdotcom/elixir_ai_research/issues
 
 ### Q46: How do I request a new feature?
 
@@ -1761,8 +1760,6 @@ Ensemble.predict(query,
 
 [Relevant papers, examples from other tools, etc.]
 ```
-
-Submit at: https://github.com/nshkrdotcom/elixir_ai_research/discussions
 
 ---
 
@@ -1823,32 +1820,19 @@ mix hex.outdated
 
 ### Q50: Where can I get help?
 
-**A:** Support channels:
+**A:** Start with the self-serve resources that ship with CrucibleFramework:
+- README.md and GETTING_STARTED.md for setup guidance
+- Component guides (Ensemble, Hedging, Statistical Testing, etc.) for domain specifics
+- CHANGELOG.md for behavioural changes and migration notes
+- CONTRIBUTING.md for the reporting process and code standards
+- This FAQ for operational and research guidance
 
-**Documentation:**
-- Framework docs: https://hexdocs.pm/elixir_ai_research
-- Guides: See README.md for list
-
-**Community:**
-- **GitHub Discussions:** Questions, ideas
-- **GitHub Issues:** Bugs, feature requests
-- **Email:** research@example.com
-
-**Response times:**
-- Discussions: 1-3 days
-- Issues: 1-5 days
-- Email: 3-7 days
-
-**Before asking:**
-1. Check this FAQ
-2. Search existing issues/discussions
-3. Try troubleshooting steps
-
-**When asking:**
-- Provide minimal reproducible example
-- Include error messages
-- Specify environment (versions, OS)
-- Show what you've tried
+**Before escalating an issue:**
+1. Re-run the failing command with verbose output enabled
+2. Confirm dependencies match the documented versions
+3. Build a minimal reproduction script or test case
+4. Capture logs, stack traces, and key configuration values
+5. Document expected vs. actual behaviour, including metrics if relevant
 
 ---
 
@@ -1904,11 +1888,9 @@ ResearchHarness.run(MyExperiment,
 
 ---
 
-**Last Updated:** 2025-10-08
-**Version:** 1.0.0
-**Maintainers:** Research Infrastructure Team
-
-**Didn't find your answer?** Open a discussion: https://github.com/nshkrdotcom/elixir_ai_research/discussions
+**Last Updated:** 2025-11-21
+**Version:** 0.1.3
+**Maintainers:** North Shore AI
 
 ---
 

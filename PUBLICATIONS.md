@@ -1,6 +1,6 @@
 # Publications Guide
 
-This document provides comprehensive guidelines for citing the Elixir AI Research Framework in academic publications, sharing research results, and maintaining reproducibility standards.
+This document provides comprehensive guidelines for citing CrucibleFramework in academic publications, sharing research results, and maintaining reproducibility standards.
 
 **Table of Contents**
 
@@ -26,30 +26,27 @@ This document provides comprehensive guidelines for citing the Elixir AI Researc
 When using the framework in general, cite:
 
 ```
-Research Infrastructure Team. (2025). Elixir AI Research Framework: Infrastructure
-for LLM Reliability Research (Version 0.1.0) [Computer software].
-https://github.com/nshkrdotcom/elixir_ai_research
+North Shore AI. (2025). CrucibleFramework: Infrastructure for LLM Reliability Research
+(Version 0.1.3) [Computer software]. https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **APA Style:**
 ```
-Research Infrastructure Team. (2025). Elixir AI Research Framework: Infrastructure
-for LLM Reliability Research (Version 0.1.0) [Computer software]. GitHub.
-https://github.com/nshkrdotcom/elixir_ai_research
+North Shore AI. (2025). CrucibleFramework: Infrastructure for LLM Reliability Research
+(Version 0.1.3) [Computer software]. GitHub. https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **IEEE Style:**
 ```
-Research Infrastructure Team, "Elixir AI Research Framework: Infrastructure for LLM
-Reliability Research," version 0.1.0, 2025. [Online]. Available:
-https://github.com/nshkrdotcom/elixir_ai_research
+North Shore AI, "CrucibleFramework: Infrastructure for LLM Reliability Research,"
+version 0.1.3, 2025. [Online]. Available:
+https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **MLA Style:**
 ```
-Research Infrastructure Team. Elixir AI Research Framework: Infrastructure for LLM
-Reliability Research. Version 0.1.0, GitHub, 2025,
-github.com/nshkrdotcom/elixir_ai_research.
+North Shore AI. CrucibleFramework: Infrastructure for LLM Reliability Research.
+Version 0.1.3, GitHub, 2025, github.com/North-Shore-AI/crucible_framework.
 ```
 
 ### Citing Specific Libraries
@@ -58,36 +55,35 @@ When using a specific library extensively, also cite that library:
 
 **Ensemble Library:**
 ```
-Research Infrastructure Team. (2025). Ensemble: Multi-model voting for AI reliability
-(Version 0.1.0) [Computer software]. Part of Elixir AI Research Framework.
-https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/ensemble
+North Shore AI. (2025). CrucibleFramework Ensemble Module: Multi-model voting for AI reliability
+(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **Hedging Library:**
 ```
-Research Infrastructure Team. (2025). Hedging: Request hedging for tail latency
-reduction (Version 0.1.0) [Computer software]. Part of Elixir AI Research Framework.
-https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/hedging
+North Shore AI. (2025). CrucibleFramework Hedging Module: Request hedging for tail latency reduction
+(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **Bench Library:**
 ```
-Research Infrastructure Team. (2025). Bench: Statistical testing for AI research
-(Version 0.1.0) [Computer software]. Part of Elixir AI Research Framework.
-https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/bench
+North Shore AI. (2025). CrucibleFramework Bench Module: Statistical testing for AI research
+(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+https://github.com/North-Shore-AI/crucible_framework
 ```
 
 ### In-Text Citations
 
 **First mention:**
 ```
-We used the Elixir AI Research Framework (Research Infrastructure Team, 2025)
-to conduct our experiments on ensemble reliability.
+We used CrucibleFramework (North Shore AI, 2025) to conduct our experiments on ensemble reliability.
 ```
 
 **Subsequent mentions:**
 ```
-The framework's ensemble library provides four voting strategies...
+The framework's ensemble module provides four voting strategies...
 ```
 
 ---
@@ -97,28 +93,28 @@ The framework's ensemble library provides four voting strategies...
 ### Main Framework
 
 ```bibtex
-@software{elixir_ai_research2025,
-  title = {Elixir AI Research Framework: Infrastructure for LLM Reliability Research},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework2025,
+  title = {CrucibleFramework: Infrastructure for LLM Reliability Research},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research},
-  version = {0.1.0},
-  note = {A scientifically-rigorous infrastructure for LLM reliability and performance research}
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {A scientifically rigorous infrastructure for LLM reliability and performance research}
 }
 ```
 
 ### Ensemble Library
 
 ```bibtex
-@software{ensemble2025,
-  title = {Ensemble: Multi-model Voting for AI Reliability},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_ensemble2025,
+  title = {CrucibleFramework Ensemble Module: Multi-model Voting for AI Reliability},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/ensemble},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {ensemble learning, voting strategies, LLM reliability}
 }
 ```
@@ -126,14 +122,14 @@ The framework's ensemble library provides four voting strategies...
 ### Hedging Library
 
 ```bibtex
-@software{hedging2025,
-  title = {Hedging: Request Hedging for Tail Latency Reduction},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_hedging2025,
+  title = {CrucibleFramework Hedging Module: Request Hedging for Tail Latency Reduction},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/hedging},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework. Implements techniques from Dean \& Barroso (2013)},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework. Implements techniques from Dean \& Barroso (2013)},
   keywords = {tail latency, request hedging, distributed systems}
 }
 ```
@@ -141,14 +137,14 @@ The framework's ensemble library provides four voting strategies...
 ### Bench Library
 
 ```bibtex
-@software{bench2025,
-  title = {Bench: Statistical Testing for AI Research},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_bench2025,
+  title = {CrucibleFramework Bench Module: Statistical Testing for AI Research},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/bench},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {statistical testing, effect sizes, reproducibility}
 }
 ```
@@ -156,14 +152,14 @@ The framework's ensemble library provides four voting strategies...
 ### TelemetryResearch Library
 
 ```bibtex
-@software{telemetry_research2025,
-  title = {TelemetryResearch: Research-grade Instrumentation},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_telemetry2025,
+  title = {CrucibleFramework Telemetry Module: Research-grade Instrumentation},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/telemetry_research},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {instrumentation, telemetry, experiment tracking}
 }
 ```
@@ -171,14 +167,14 @@ The framework's ensemble library provides four voting strategies...
 ### DatasetManager Library
 
 ```bibtex
-@software{dataset_manager2025,
-  title = {DatasetManager: Unified Benchmark Dataset Interface},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_dataset2025,
+  title = {CrucibleFramework Dataset Module: Unified Benchmark Dataset Interface},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/dataset_manager},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {benchmarks, datasets, evaluation}
 }
 ```
@@ -186,14 +182,14 @@ The framework's ensemble library provides four voting strategies...
 ### CausalTrace Library
 
 ```bibtex
-@software{causal_trace2025,
-  title = {CausalTrace: Decision Provenance for LLMs},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_causal2025,
+  title = {CrucibleFramework CausalTrace Module: Decision Provenance for LLMs},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/causal_trace},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {transparency, provenance, explainability}
 }
 ```
@@ -201,14 +197,14 @@ The framework's ensemble library provides four voting strategies...
 ### ResearchHarness Library
 
 ```bibtex
-@software{research_harness2025,
-  title = {ResearchHarness: Experiment Orchestration DSL},
-  author = {{Research Infrastructure Team}},
+@software{crucible_framework_orchestration2025,
+  title = {CrucibleFramework Orchestration Module: Experiment DSL},
+  author = {{North Shore AI}},
   year = {2025},
-  month = {10},
-  url = {https://github.com/nshkrdotcom/elixir_ai_research/tree/main/apps/research_harness},
-  version = {0.1.0},
-  note = {Part of Elixir AI Research Framework},
+  month = {11},
+  url = {https://github.com/North-Shore-AI/crucible_framework},
+  version = {0.1.3},
+  note = {Part of CrucibleFramework},
   keywords = {experiment design, orchestration, reproducibility}
 }
 ```
@@ -310,7 +306,7 @@ The framework's ensemble library provides four voting strategies...
 ```latex
 \begin{abstract}
 We investigate [research question] using [experimental design].
-We employ the Elixir AI Research Framework \cite{elixir_ai_research2025}
+We employ CrucibleFramework \cite{crucible_framework2025}
 to conduct [number] experiments with [number] queries across [number] conditions.
 Our results show that [main finding] with [statistical significance].
 Specifically, [treatment] achieved [metric value] compared to [baseline value],
@@ -325,8 +321,8 @@ All code and data are available at [repository URL].
 ```latex
 \begin{abstract}
 We investigate the reliability of multi-model ensembles for mathematical reasoning
-using a randomized controlled trial. We employ the Elixir AI Research Framework
-\cite{elixir_ai_research2025} to conduct 3 experiments with 200 queries across
+using a randomized controlled trial. We employ CrucibleFramework
+\cite{crucible_framework2025} to conduct 3 experiments with 200 queries across
 4 ensemble sizes (1, 3, 5, 7 models). Our results show that 5-model ensembles
 significantly outperform single models with very large effect sizes. Specifically,
 the 5-model ensemble achieved 96.3\% accuracy (SD=1.2\%) compared to 89.1\% (SD=2.1\%)
@@ -409,15 +405,15 @@ generator (seed=42) to ensure reproducibility while preventing order effects.
 
 \subsection{Implementation}
 
-We implemented all experiments using the Elixir AI Research Framework
-\cite{elixir_ai_research2025}, which provides research-grade instrumentation
+We implemented all experiments using CrucibleFramework
+\cite{crucible_framework2025}, which provides research-grade instrumentation
 and statistical analysis capabilities.
 
-\textbf{Ensemble Implementation:} We used the Ensemble library
-\cite{ensemble2025} to implement multi-model voting with majority strategy.
+\textbf{Ensemble Implementation:} We used the CrucibleFramework Ensemble module
+\cite{crucible_framework_ensemble2025} to implement multi-model voting with majority strategy.
 Models were queried in parallel with a timeout of [timeout] seconds.
 
-\textbf{Statistical Analysis:} We used the Bench library \cite{bench2025}
+\textbf{Statistical Analysis:} We used the CrucibleFramework Bench module \cite{crucible_framework_bench2025}
 for statistical testing. We employed [test name] to compare conditions, with
 $\alpha = 0.05$ as the significance threshold. Effect sizes were calculated
 using [effect size measure] following Cohen (1988) \cite{cohen1988statistical}.
@@ -702,9 +698,9 @@ Document exact computational environment:
 ```yaml
 # environment.yml
 framework:
-  name: elixir_ai_research
-  version: 0.1.0
-  commit: abc123def456
+  name: crucible_framework
+  version: 0.1.3
+  commit: v0.1.3
 
 runtime:
   elixir: 1.17.0
@@ -777,9 +773,9 @@ experiment_name/
 ```latex
 \section*{Acknowledgments}
 
-We thank the contributors to the Elixir AI Research Framework for providing
+We thank the contributors to CrucibleFramework for providing
 the infrastructure that enabled this research. Experiments were conducted
-using version 0.1.0 of the framework.
+using version 0.1.3 of the framework.
 ```
 
 ### Specific Library Usage
@@ -787,9 +783,9 @@ using version 0.1.0 of the framework.
 ```latex
 \section*{Acknowledgments}
 
-We thank the contributors to the Elixir AI Research Framework. This work
-specifically utilized the Ensemble library for multi-model voting and the
-Bench library for statistical analysis. We also acknowledge [funding source]
+We thank the contributors to CrucibleFramework. This work
+specifically utilized the Ensemble module for multi-model voting and the
+Bench module for statistical analysis. We also acknowledge [funding source]
 for supporting this research.
 ```
 
@@ -799,7 +795,7 @@ for supporting this research.
 \section*{Acknowledgments}
 
 We thank [contributor names] for helpful discussions and feedback on
-experimental design. We thank the Elixir AI Research Framework community
+experimental design. We thank the CrucibleFramework community
 for providing tools and infrastructure. This work was supported by [funding].
 ```
 
@@ -874,7 +870,7 @@ Stop after 3 complete repetitions, regardless of results
 
 **Licensing:**
 
-- **Code:** MIT, Apache 2.0, or GPL
+- **Code:** MIT
 - **Data:** CC0 (public domain), CC-BY (attribution), or CC-BY-SA (share-alike)
 - **Papers:** CC-BY for gold open access
 
@@ -989,18 +985,9 @@ If dataset is proprietary:
 
 ---
 
-## Contact
-
-For questions about citing the framework or publishing your research:
-
-- **GitHub Discussions:** https://github.com/nshkrdotcom/elixir_ai_research/discussions
-- **Email:** research@example.com
-
----
-
-**Last Updated:** 2025-10-08
-**Version:** 1.0.0
-**Maintainers:** Research Infrastructure Team
+**Last Updated:** 2025-11-21
+**Version:** 0.1.3
+**Maintainers:** North Shore AI
 
 ---
 

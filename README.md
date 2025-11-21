@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/crucible_framework.svg" alt="Crucible Framework" width="150"/>
-</p>
+<div align="center"><img src="assets/crucible_framework.svg" width="400" alt="Crucible Framework Logo" /></div>
 
 # CrucibleFramework
 
@@ -27,6 +25,7 @@ The Crucible Framework is a comprehensive infrastructure for conducting **reprod
 **Key Features:**
 - **Multi-model ensemble voting** with 4 voting strategies
 - **Request hedging** for tail latency reduction (50-75% P99 improvement)
+- **Adapter-agnostic LoRA training interface** (Crucible.Lora + Tinkex adapter)
 - **Statistical testing** with 15+ tests (parametric & non-parametric)
 - **Research-grade instrumentation** with complete event capture
 - **Causal transparency** for LLM decision provenance
@@ -235,6 +234,46 @@ end,
 - **Based on:** Google's "Tail at Scale" research
 
 **See [HEDGING_GUIDE.md](./HEDGING_GUIDE.md) for theory and practice.**
+
+### LoRA Integration Layer
+
+Crucible provides an adapter-agnostic API (`Crucible.Lora`) that funnels telemetry, checkpoints, and quality validation through a common interface. The default adapter (`Crucible.Tinkex`) drives the Tinkex SDK, but you can swap adapters via `config :crucible_framework, :lora_adapter, YourAdapter`.
+
+```elixir
+# config/runtime.exs
+config :crucible_framework, :lora_adapter, Crucible.Tinkex
+
+{:ok, experiment} =
+  Crucible.Lora.create_experiment(
+    name: "SciFact Fine-tuning",
+    config: [api_key: System.fetch_env!("TINKEX_KEY")]
+  )
+
+Crucible.Tinkex.Telemetry.attach(experiment_id: experiment.id)
+
+experiment
+|> Crucible.Tinkex.Experiment.generate_runs()
+|> Enum.each(fn run ->
+  dataset
+  |> Crucible.Lora.batch_dataset(16)
+  |> Enum.each(fn batch ->
+    formatted = Crucible.Lora.format_training_data(batch)
+    # Forward/backward via adapter…
+  end)
+end)
+```
+
+**Adapter Capabilities**
+- `Crucible.Lora` – high-level helpers for batching, formatting, metrics, and checkpoints
+- `Crucible.Tinkex.Config` – API credentials, retry policies, default LoRA hyperparameters
+- `Crucible.Tinkex.Experiment` – sweep/replication definitions and run generation
+- `Crucible.Tinkex.QualityValidator` – CNS3-derived schema/citation/entailment gates
+- `Crucible.Tinkex.Results` – training/eval aggregation with CSV/export helpers
+- `Crucible.Tinkex.Telemetry` – standardized `[:crucible, :tinkex, ...]` events
+
+You can implement additional adapters by satisfying the [`Crucible.Lora.Adapter`](./lib/crucible/lora/adapter.ex) behaviour. This keeps Crucible decoupled from any one fine-tuning backend while still offering a batteries-included Tinkex implementation.
+
+See [INSTRUMENTATION.md](./INSTRUMENTATION.md) and [GETTING_STARTED.md](./GETTING_STARTED.md#tinkex-fine-tuning-integration) for setup details.
 
 ### Bench: Statistical Testing
 
@@ -811,7 +850,7 @@ seed 42
 **2. Version Tracking**
 ```yaml
 # Saved in experiment metadata
-framework_version: 0.1.0
+framework_version: 0.1.3
 elixir_version: 1.14.0
 dataset_version: mmlu-1.0.0
 model_versions:
@@ -854,7 +893,7 @@ If you use this framework in your research, please cite:
   author = {Research Infrastructure Team},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.0}
+  version = {0.1.3}
 }
 ```
 
@@ -1032,8 +1071,8 @@ See [Citation](#citation) section above and [PUBLICATIONS.md](./PUBLICATIONS.md)
 ---
 
 **Status:** Active development
-**Version:** 0.1.0
-**Last Updated:** 2025-10-08
+**Version:** 0.1.3
+**Last Updated:** 2025-11-21
 **Maintainers:** Research Infrastructure Team
 
 ---
