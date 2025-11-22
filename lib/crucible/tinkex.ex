@@ -44,7 +44,7 @@ defmodule Crucible.Tinkex do
 
   alias Crucible.Tinkex.Config
 
-  defmodule Session do
+  defmodule SessionStruct do
     @moduledoc """
     Represents an active training session with Tinkex.
 
@@ -124,6 +124,7 @@ defmodule Crucible.Tinkex do
       iex> String.length(id)
       16
   """
+  @impl Crucible.Lora.Adapter
   @spec generate_id() :: String.t()
   def generate_id do
     :crypto.strong_rand_bytes(8)
@@ -148,6 +149,7 @@ defmodule Crucible.Tinkex do
 
       iex> {:error, _} = Crucible.Tinkex.create_experiment([])
   """
+  @impl Crucible.Lora.Adapter
   @spec create_experiment(keyword()) :: {:ok, map()} | {:error, String.t()}
   def create_experiment(opts) when is_list(opts) do
     name = Keyword.get(opts, :name)
@@ -193,6 +195,7 @@ defmodule Crucible.Tinkex do
       iex> Crucible.Tinkex.batch_dataset([], 10)
       []
   """
+  @impl Crucible.Lora.Adapter
   @spec batch_dataset(list(), pos_integer()) :: [[any()]]
   def batch_dataset(dataset, batch_size) when is_list(dataset) and batch_size > 0 do
     Enum.chunk_every(dataset, batch_size)
@@ -212,6 +215,7 @@ defmodule Crucible.Tinkex do
       iex> is_list(formatted)
       true
   """
+  @impl Crucible.Lora.Adapter
   @spec format_training_data(list(), keyword()) :: list()
   def format_training_data(batch, opts \\ []) when is_list(batch) do
     _citation_weight = Keyword.get(opts, :citation_validity_weight, 1.0)
@@ -235,6 +239,7 @@ defmodule Crucible.Tinkex do
       iex> metrics.mean_loss
       1.0
   """
+  @impl Crucible.Lora.Adapter
   @spec calculate_metrics(list()) :: map()
   def calculate_metrics([]) do
     %{
@@ -278,6 +283,7 @@ defmodule Crucible.Tinkex do
       iex> validation.passed
       true
   """
+  @impl Crucible.Lora.Adapter
   @spec validate_quality(map(), Config.t()) :: map()
   def validate_quality(results, %Config{} = config) do
     targets = Config.quality_targets(config)
@@ -321,6 +327,7 @@ defmodule Crucible.Tinkex do
       iex> params.temperature
       0.5
   """
+  @impl Crucible.Lora.Adapter
   @spec sampling_params(keyword()) :: map()
   def sampling_params(opts \\ []) do
     %{
@@ -342,9 +349,127 @@ defmodule Crucible.Tinkex do
       iex> String.contains?(name, "step_100")
       true
   """
+  @impl Crucible.Lora.Adapter
   @spec checkpoint_name(String.t(), pos_integer()) :: String.t()
   def checkpoint_name(experiment_id, step) do
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
     "#{experiment_id}_step_#{step}_#{timestamp}"
+  end
+
+  # Session-based API implementations
+
+  @doc """
+  Starts a new training session for an experiment.
+
+  ## Options
+
+  The config map should contain:
+  - `:id` - Experiment ID
+  - `:name` - Experiment name
+  - `:config` - Crucible.Tinkex.Config struct
+
+  ## Examples
+
+      {:ok, session} = Crucible.Tinkex.start_session(%{
+        id: "exp-123",
+        name: "My Experiment",
+        config: config
+      })
+  """
+  @impl true
+  @spec start_session(map()) :: {:ok, pid()} | {:error, term()}
+  def start_session(experiment) when is_map(experiment) do
+    Crucible.Tinkex.Session.start_link(experiment: experiment)
+  end
+
+  @doc """
+  Executes a forward-backward pass on a batch of training data.
+
+  ## Options
+
+  - `:loss_fn` - Loss function to use (default: :cross_entropy)
+  - `:loss_fn_config` - Additional loss function configuration
+
+  ## Examples
+
+      batch = [%{input: "text", output: "target", weight: 1.0}]
+      {:ok, metrics} = Crucible.Tinkex.forward_backward(session, batch)
+  """
+  @impl true
+  @spec forward_backward(pid(), list(), keyword()) :: {:ok, map()} | {:error, term()}
+  def forward_backward(session, batch, opts \\ []) do
+    GenServer.call(session, {:forward_backward, batch, opts}, :infinity)
+  end
+
+  @doc """
+  Performs an optimizer step with Adam parameters.
+
+  ## Parameters
+
+  The params map should contain:
+  - `:lr` - Learning rate
+  - `:beta1` - First moment decay (default: 0.9)
+  - `:beta2` - Second moment decay (default: 0.999)
+  - `:eps` - Epsilon for numerical stability (default: 1.0e-8)
+  - `:weight_decay` - Weight decay coefficient (default: 0.01)
+
+  ## Examples
+
+      adam_params = %{lr: 0.0001, beta1: 0.9, beta2: 0.999, eps: 1.0e-8, weight_decay: 0.01}
+      {:ok, result} = Crucible.Tinkex.optim_step(session, adam_params)
+  """
+  @impl true
+  @spec optim_step(pid(), map(), keyword()) :: {:ok, map()} | {:error, term()}
+  def optim_step(session, params, opts \\ []) do
+    GenServer.call(session, {:optim_step, params, opts}, :infinity)
+  end
+
+  @doc """
+  Saves a checkpoint at the current training step.
+
+  ## Examples
+
+      {:ok, checkpoint} = Crucible.Tinkex.save_checkpoint(session, 100)
+      checkpoint.name  # "exp-123_step_100_1700000000"
+  """
+  @spec save_checkpoint(pid(), pos_integer()) :: {:ok, map()} | {:error, term()}
+  def save_checkpoint(session, step) do
+    GenServer.call(session, {:save_checkpoint, step}, :infinity)
+  end
+
+  @doc """
+  Creates a sampling client from a saved checkpoint.
+
+  ## Examples
+
+      {:ok, checkpoint} = Crucible.Tinkex.save_checkpoint(session, 100)
+      {:ok, sampler} = Crucible.Tinkex.create_sampler(session, checkpoint.name)
+  """
+  @impl true
+  @spec create_sampler(pid(), String.t()) :: {:ok, pid()} | {:error, term()}
+  def create_sampler(session, checkpoint_name) do
+    GenServer.call(session, {:create_sampler, checkpoint_name}, :infinity)
+  end
+
+  @doc """
+  Generates text samples from a prompt using the session's sampler.
+
+  The session must have a sampler created via `create_sampler/2` first.
+
+  ## Options
+
+  - `:temperature` - Sampling temperature (default: 0.7)
+  - `:top_p` - Nucleus sampling threshold (default: 0.95)
+  - `:max_tokens` - Maximum tokens to generate (default: 512)
+  - `:num_samples` - Number of samples to generate (default: 1)
+
+  ## Examples
+
+      {:ok, samples} = Crucible.Tinkex.sample(session, "Complete this:", temperature: 0.5)
+  """
+  @impl true
+  @spec sample(pid(), String.t(), keyword()) :: {:ok, list(String.t())} | {:error, term()}
+  def sample(session, prompt, opts \\ []) do
+    GenServer.call(session, {:sample, prompt, opts}, :infinity)
   end
 end

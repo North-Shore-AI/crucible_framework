@@ -48,7 +48,7 @@ defmodule Crucible.TinkexTest do
       }
 
       assert session.experiment_id == "exp-123"
-      assert session.service == nil
+      assert session.service_client == nil
       assert session.training_client == nil
     end
   end
