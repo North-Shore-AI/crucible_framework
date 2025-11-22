@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Tinkex job/telemetry processes** - `JobQueue`, `JobStore`, and `TelemetryBroker` now start unlinked via `GenServer.start/3` and expose a `:__supertester_sync__` call for safe synchronization in concurrent tests, eliminating intermittent process-not-alive failures.
 
+## [0.1.5] - 2025-11-21
+
+### Fixed
+- **mix.exs metadata** - Corrected a small bug in `mix.exs` so the package version and documentation source references align for the v0.1.5 release.
+
 ## [0.1.4] - 2025-11-12
 
 ### Changed
