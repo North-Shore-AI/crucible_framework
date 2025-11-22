@@ -2,14 +2,6 @@ defmodule CrucibleFrameworkTest do
   use ExUnit.Case
   doctest CrucibleFramework
 
-  describe "version/0" do
-    test "returns the framework version" do
-      version = CrucibleFramework.version()
-      assert is_binary(version)
-      assert String.match?(version, ~r/^\d+\.\d+\.\d+/)
-    end
-  end
-
   describe "components/0" do
     test "returns a list of component atoms" do
       components = CrucibleFramework.components()

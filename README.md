@@ -43,7 +43,7 @@ Add `crucible_framework` to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.2.0"}
+    {:crucible_framework, "~> 0.2.1"}
   ]
 end
 ```
@@ -502,7 +502,7 @@ If you use this framework in your research, please cite:
   author = {Research Infrastructure Team},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {v0.2.0}
+  version = {v0.2.1}
 }
 ```
 
@@ -535,7 +535,7 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 ---
 
 **Status:** Active development
-**Version:** v0.2.0
+**Version:** v0.2.1
 **Last Updated:** 2025-11-21
 **Maintainers:** Research Infrastructure Team
 

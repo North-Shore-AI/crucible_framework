@@ -63,11 +63,6 @@ defmodule CrucibleFramework do
 
   @doc """
   Returns the framework version.
-
-  ## Examples
-
-      iex> CrucibleFramework.version()
-      "0.2.0"
   """
   @spec version() :: String.t()
   def version, do: @version

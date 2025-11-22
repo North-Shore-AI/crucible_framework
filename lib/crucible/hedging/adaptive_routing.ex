@@ -59,15 +59,11 @@ defmodule Crucible.Hedging.AdaptiveRouting do
     * `:models` - List of model specs with name and weight (required)
     * `:strategy` - Routing strategy (default: `:round_robin`)
   """
-  @spec start_link(keyword()) :: GenServer.on_start()
+  @spec start_link(keyword() | map()) :: GenServer.on_start()
   def start_link(opts) do
-    models = Keyword.fetch!(opts, :models)
-    strategy = Keyword.get(opts, :strategy, :round_robin)
+    %{models: models, strategy: strategy} = normalize_init_args(opts)
 
-    GenServer.start_link(__MODULE__, %{
-      models: models,
-      strategy: strategy
-    })
+    GenServer.start_link(__MODULE__, %{models: models, strategy: strategy})
   end
 
   @doc """
@@ -130,7 +126,9 @@ defmodule Crucible.Hedging.AdaptiveRouting do
   # Server Callbacks
 
   @impl true
-  def init(%{models: models, strategy: strategy}) do
+  def init(init_arg) do
+    %{models: models, strategy: strategy} = normalize_init_args(init_arg)
+
     metrics =
       models
       |> Enum.map(fn model -> {model.name, initial_metrics()} end)
@@ -156,6 +154,24 @@ defmodule Crucible.Hedging.AdaptiveRouting do
     }
 
     {:ok, state}
+  end
+
+  defp normalize_init_args(%{models: models} = map) do
+    %{
+      models: models,
+      strategy: Map.get(map, :strategy, :round_robin)
+    }
+  end
+
+  defp normalize_init_args(opts) when is_list(opts) do
+    opts
+    |> Map.new()
+    |> normalize_init_args()
+  end
+
+  defp normalize_init_args(other) do
+    raise ArgumentError,
+          "AdaptiveRouting expected init args with :models and optional :strategy, got: #{inspect(other)}"
   end
 
   @impl true
