@@ -90,3 +90,8 @@ pids
 # Ignore mix.exs.backup if created
 mix.exs.backup
 mix.exs.old
+
+
+artifacts/
+repomix*.xml
+

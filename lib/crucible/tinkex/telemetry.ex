@@ -33,6 +33,7 @@ defmodule Crucible.Tinkex.Telemetry do
   """
 
   require Logger
+  alias Crucible.Tinkex.TelemetryBroker
 
   @events [
     [:crucible, :tinkex, :training, :step],
@@ -91,6 +92,8 @@ defmodule Crucible.Tinkex.Telemetry do
   """
   @spec emit_training_step(map()) :: :ok
   def emit_training_step(metrics) when is_map(metrics) do
+    job_id = Map.get(metrics, :job_id) || Map.get(metrics, "job_id")
+
     :telemetry.execute(
       [:crucible, :tinkex, :training, :step],
       %{
@@ -100,10 +103,12 @@ defmodule Crucible.Tinkex.Telemetry do
       %{
         step: Map.get(metrics, :step),
         epoch: Map.get(metrics, :epoch),
+        job_id: job_id,
         timestamp: DateTime.utc_now()
       }
     )
 
+    maybe_broadcast(job_id, :training_step, metrics, %{})
     :ok
   end
 
@@ -117,6 +122,8 @@ defmodule Crucible.Tinkex.Telemetry do
   """
   @spec emit_epoch_complete(map()) :: :ok
   def emit_epoch_complete(metrics) when is_map(metrics) do
+    job_id = Map.get(metrics, :job_id) || Map.get(metrics, "job_id")
+
     :telemetry.execute(
       [:crucible, :tinkex, :training, :epoch],
       %{
@@ -125,10 +132,12 @@ defmodule Crucible.Tinkex.Telemetry do
       },
       %{
         epoch: Map.get(metrics, :epoch),
+        job_id: job_id,
         timestamp: DateTime.utc_now()
       }
     )
 
+    maybe_broadcast(job_id, :epoch_complete, metrics, %{})
     :ok
   end
 
@@ -142,15 +151,23 @@ defmodule Crucible.Tinkex.Telemetry do
   """
   @spec emit_evaluation_complete(map()) :: :ok
   def emit_evaluation_complete(evaluation) when is_map(evaluation) do
+    job_id = Map.get(evaluation, :job_id) || Map.get(evaluation, "job_id")
+
     :telemetry.execute(
       [:crucible, :tinkex, :evaluation, :complete],
       evaluation.metrics || %{},
       %{
         adapter_name: Map.get(evaluation, :adapter_name),
         samples: Map.get(evaluation, :samples, 0),
+        job_id: job_id,
         timestamp: DateTime.utc_now()
       }
     )
+
+    maybe_broadcast(job_id, :evaluation_complete, evaluation.metrics || %{}, %{
+      adapter_name: Map.get(evaluation, :adapter_name),
+      samples: Map.get(evaluation, :samples, 0)
+    })
 
     :ok
   end
@@ -165,14 +182,21 @@ defmodule Crucible.Tinkex.Telemetry do
   """
   @spec emit_checkpoint_saved(map()) :: :ok
   def emit_checkpoint_saved(checkpoint) when is_map(checkpoint) do
+    job_id = Map.get(checkpoint, :job_id) || Map.get(checkpoint, "job_id")
+
     :telemetry.execute(
       [:crucible, :tinkex, :checkpoint, :saved],
       %{step: Map.get(checkpoint, :step)},
       %{
         name: Map.get(checkpoint, :name),
+        job_id: job_id,
         timestamp: DateTime.utc_now()
       }
     )
+
+    maybe_broadcast(job_id, :checkpoint_saved, %{step: Map.get(checkpoint, :step)}, %{
+      name: Map.get(checkpoint, :name)
+    })
 
     :ok
   end
@@ -209,6 +233,8 @@ defmodule Crucible.Tinkex.Telemetry do
         "measurements=#{inspect(measurements)} " <>
         "metadata=#{inspect(Map.drop(metadata, [:timestamp]))}"
     end)
+
+    maybe_broadcast(metadata[:job_id], event_type, measurements, Map.drop(metadata, [:timestamp]))
   end
 
   @doc """
@@ -222,4 +248,14 @@ defmodule Crucible.Tinkex.Telemetry do
   """
   @spec events() :: [[atom()]]
   def events, do: @events
+
+  defp maybe_broadcast(nil, _event, _measurements, _metadata), do: :ok
+
+  defp maybe_broadcast(job_id, event, measurements, metadata) do
+    TelemetryBroker.broadcast(job_id, %{
+      event: event,
+      measurements: measurements,
+      metadata: metadata
+    })
+  end
 end
