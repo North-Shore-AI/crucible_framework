@@ -2,7 +2,7 @@
 
 **A Comprehensive Guide for Researchers New to the Framework**
 
-Version: 0.1.4
+Version: X.Y.Z
 Last Updated: 2025-11-12
 Target Audience: PhD students, ML researchers, scientists requiring rigorous LLM experimentation
 Estimated Reading Time: 45 minutes
@@ -247,7 +247,7 @@ Once the package is on Hex.pm, add it to your `mix.exs` and let Mix handle updat
 # mix.exs
 def deps do
   [
-    {:crucible_framework, "~> 0.1.4"}
+    {:crucible_framework, "~> X.Y.Z"}
   ]
 end
 ```
@@ -1013,7 +1013,7 @@ If each error costs $1 to fix manually:
 ### Environment
 
 ```yaml
-framework_version: 0.1.4
+framework_version: X.Y.Z
 elixir_version: 1.14.0
 erlang_version: 25.0
 dataset_version: mmlu-1.0.0
@@ -1228,7 +1228,7 @@ seed 42  # All randomness deterministic
 **2. Version Tracking**
 ```yaml
   # Automatically saved in results
-  framework_version: 0.1.4
+  framework_version: X.Y.Z
   elixir_version: 1.14.0
   dataset_version: mmlu-1.0.0
 model_versions:
@@ -1264,7 +1264,7 @@ diff results/original results/reproduction
 
 ## LoRA Adapter Layer (Tinkex Default)
 
-**New in 0.1.4:** Tinkex overlay configuration now resolves under the `:crucible_framework` application environment (not `:crucible_tinkex`), keeping API tokens, default models, runner mode, and submission hooks centralized in the framework config. The adapter-neutral LoRA interface (`Crucible.Lora`) remains the default surface, and the bundled adapter still targets the [Tinkex](https://hex.pm/packages/tinkex) SDK. To swap adapters, implement the `Crucible.Lora.Adapter` behaviour and set `config :crucible_framework, :lora_adapter, MyAdapter`.
+**New in X.Y.Z:** Tinkex overlay configuration now resolves under the `:crucible_framework` application environment (not `:crucible_tinkex`), keeping API tokens, default models, runner mode, and submission hooks centralized in the framework config. The adapter-neutral LoRA interface (`Crucible.Lora`) remains the default surface, and the bundled adapter still targets the [Tinkex](https://hex.pm/packages/tinkex) SDK. To swap adapters, implement the `Crucible.Lora.Adapter` behaviour and set `config :crucible_framework, :lora_adapter, MyAdapter`.
 
 ### Building Blocks
 - `Crucible.Lora` – facade for experiment creation, batching, formatting, metrics, and checkpoint helpers

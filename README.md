@@ -850,7 +850,7 @@ seed 42
 **2. Version Tracking**
 ```yaml
 # Saved in experiment metadata
-framework_version: 0.1.4
+framework_version: 0.1.5
 elixir_version: 1.14.0
 dataset_version: mmlu-1.0.0
 model_versions:
@@ -893,7 +893,7 @@ If you use this framework in your research, please cite:
   author = {Research Infrastructure Team},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.4}
+  version = {0.1.5}
 }
 ```
 
@@ -1071,7 +1071,7 @@ See [Citation](#citation) section above and [PUBLICATIONS.md](./PUBLICATIONS.md)
 ---
 
 **Status:** Active development
-**Version:** 0.1.4
+**Version:** 0.1.5
 **Last Updated:** 2025-11-21
 **Maintainers:** Research Infrastructure Team
 
