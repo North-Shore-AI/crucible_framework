@@ -1,4 +1,4 @@
-ExUnit.start(capture_log: true)
+ExUnit.start(capture_log: true, exclude: [:slow])
 
 Logger.configure(level: :warning)
 

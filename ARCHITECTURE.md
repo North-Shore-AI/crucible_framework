@@ -1,7 +1,7 @@
 # System Architecture: Elixir AI Research Framework
 
-**Version:** 0.1.0
-**Last Updated:** 2025-10-08
+**Version:** 0.2.0
+**Last Updated:** 2025-11-21
 **Authors:** Research Infrastructure Team
 
 ---
@@ -1058,6 +1058,77 @@ metrics.cost
 #     claude: 3.95
 #   }
 # }
+```
+
+### Tinkex Integration Architecture
+
+The framework integrates with Tinkex for ML training and inference through an adapter layer:
+
+```mermaid
+graph TB
+    subgraph "Crucible Framework API"
+        LORA[Crucible.Lora<br/>Training Interface]
+        ENS[Crucible.Ensemble<br/>Inference Interface]
+    end
+
+    subgraph "Adapter Layer"
+        TX_ADAPTER[Crucible.Tinkex<br/>Adapter]
+        TX_CONFIG[Config]
+        TX_EXP[Experiment]
+        TX_QUAL[QualityValidator]
+        TX_RESULTS[Results]
+        TX_TEL[Telemetry]
+    end
+
+    subgraph "Tinkex SDK"
+        TRAIN[TrainingClient]
+        SAMPLE[SamplingClient]
+    end
+
+    LORA --> TX_ADAPTER
+    ENS --> TX_ADAPTER
+    TX_ADAPTER --> TX_CONFIG
+    TX_ADAPTER --> TX_EXP
+    TX_ADAPTER --> TX_QUAL
+    TX_ADAPTER --> TX_RESULTS
+    TX_ADAPTER --> TX_TEL
+    TX_ADAPTER --> TRAIN
+    TX_ADAPTER --> SAMPLE
+```
+
+**Component Responsibilities:**
+
+| Component | Purpose | Key Functions |
+|-----------|---------|---------------|
+| `Crucible.Lora` | High-level training API | `create_experiment/1`, `train/3`, `evaluate/3` |
+| `Crucible.Tinkex` | Tinkex SDK adapter | Forward/backward, optimization, checkpointing |
+| `Config` | Connection settings | API keys, timeouts, retry policies |
+| `Experiment` | Experiment structure | Sweeps, runs, lifecycle |
+| `QualityValidator` | Quality gates | Schema, citation, entailment checks |
+| `Results` | Metric aggregation | CSV export, best-run selection |
+| `Telemetry` | Event emission | Training/inference events |
+
+**Data Flow - Training:**
+
+```
+Dataset -> Crucible.Lora.batch_dataset()
+       -> Crucible.Lora.format_training_data()
+       -> Crucible.Tinkex.forward_backward()
+       -> Tinkex.TrainingClient
+       -> Crucible.Tinkex.Telemetry.emit()
+       -> Crucible.Bench.analyze()
+       -> Reporter.generate()
+```
+
+**Data Flow - Inference:**
+
+```
+Prompt -> Crucible.Ensemble.infer()
+      -> Crucible.Hedging.dispatch()
+      -> Tinkex.SamplingClient.generate() [N adapters]
+      -> Crucible.Trace.record()
+      -> Crucible.Ensemble.vote()
+      -> Crucible.Telemetry.emit()
 ```
 
 ### Layer 6: Orchestration (ResearchHarness)
@@ -2491,5 +2562,5 @@ The Elixir AI Research Framework provides a scientifically-rigorous, highly-conc
 
 **Document Status:** Complete
 **Review Status:** Pending peer review
-**Version:** 0.1.0
-**Last Updated:** 2025-10-08
+**Version:** 0.2.0
+**Last Updated:** 2025-11-21

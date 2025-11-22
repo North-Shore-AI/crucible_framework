@@ -76,12 +76,19 @@ defmodule Crucible.Hedging.InferenceHedgerTest do
         {%{name: "fast_model"}, :client2}
       ]
 
-      # Primary is slow (300ms), backup starts after 20ms and completes quickly
+      # Primary is slow, backup starts after 20ms and completes quickly
+      # Use a controlled delay that blocks until explicitly released or times out
+      slow_ref = make_ref()
+
       inference_fn = fn client ->
         case client do
           :client1 ->
-            Process.sleep(300)
-            {:ok, "slow_response"}
+            # Block waiting for a message that won't come (simulates slow response)
+            receive do
+              {:release, ^slow_ref} -> {:ok, "slow_response"}
+            after
+              500 -> {:ok, "slow_response"}
+            end
 
           :client2 ->
             # Backup completes quickly after the 20ms delay
@@ -122,12 +129,18 @@ defmodule Crucible.Hedging.InferenceHedgerTest do
         {%{name: "model2"}, :client2}
       ]
 
+      # Use a controlled delay for the primary
+      slow_ref = make_ref()
+
       inference_fn = fn client ->
         case client do
           :client1 ->
-            # Primary takes 100ms
-            Process.sleep(100)
-            {:ok, "response1"}
+            # Primary blocks waiting for a message that won't come
+            receive do
+              {:release, ^slow_ref} -> {:ok, "response1"}
+            after
+              200 -> {:ok, "response1"}
+            end
 
           :client2 ->
             # Backup starts after 10ms delay but completes instantly
@@ -157,14 +170,18 @@ defmodule Crucible.Hedging.InferenceHedgerTest do
 
       # Track when slow client starts
       slow_started = :atomics.new(1, signed: false)
+      slow_ref = make_ref()
 
       inference_fn = fn client ->
         case client do
           :slow_client ->
             :atomics.put(slow_started, 1, 1)
-            # Takes a long time
-            Process.sleep(500)
-            {:ok, "slow"}
+            # Block waiting for a message that won't come (simulates slow response)
+            receive do
+              {:release, ^slow_ref} -> {:ok, "slow"}
+            after
+              1000 -> {:ok, "slow"}
+            end
 
           :fast_client ->
             # Fast client completes quickly after 10ms delay

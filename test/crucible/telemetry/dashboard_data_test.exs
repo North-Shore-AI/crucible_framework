@@ -4,21 +4,33 @@ defmodule Crucible.Telemetry.DashboardDataTest do
   alias Crucible.Telemetry.{DashboardData, MLMetrics, ExperimentTracker}
 
   setup do
-    {:ok, collector} = MLMetrics.start_link(experiment_id: "dash-test")
+    # Ensure Registry is started for collector lookup
+    _ = Registry.start_link(keys: :unique, name: Crucible.Telemetry.Registry)
+
+    # Use unique experiment_id per test to avoid collisions
+    exp_id = "dash-test-#{System.unique_integer([:positive])}"
+
+    {:ok, collector} = MLMetrics.start_link(experiment_id: exp_id)
     {:ok, tracker} = ExperimentTracker.start_link([])
 
     # Set up test data
-    :ok = ExperimentTracker.start_experiment(tracker, "dash-test", %{name: "Dashboard Test"})
+    :ok = ExperimentTracker.start_experiment(tracker, exp_id, %{name: "Dashboard Test"})
 
     for i <- 1..50 do
       :ok = MLMetrics.record_training_step(collector, i, div(i - 1, 10) + 1, 5.0 - i * 0.05, 0.1)
     end
 
-    %{collector: collector, tracker: tracker, experiment_id: "dash-test"}
+    # Sync call ensures all prior casts are processed
+    _ = MLMetrics.get_metrics(collector)
+
+    %{collector: collector, tracker: tracker, experiment_id: exp_id}
   end
 
   describe "training_progress/2" do
-    test "returns training progress data", %{experiment_id: exp_id} do
+    test "returns training progress data", %{experiment_id: exp_id, collector: collector} do
+      # Sync to ensure all casts are processed before assertion
+      _ = MLMetrics.get_metrics(collector)
+
       progress = DashboardData.training_progress(exp_id)
 
       assert is_map(progress)
@@ -46,8 +58,8 @@ defmodule Crucible.Telemetry.DashboardDataTest do
       smoothed_curve = DashboardData.loss_curve(exp_id, smoothing: 0.9)
 
       # Smoothed values should be different
-      raw_first = hd(raw_curve).loss
-      smoothed_first = hd(smoothed_curve).loss
+      _raw_first = hd(raw_curve).loss
+      _smoothed_first = hd(smoothed_curve).loss
 
       # First values might be similar, but later ones should differ
       raw_last = List.last(raw_curve).loss

@@ -179,7 +179,7 @@ defmodule Crucible.Tinkex.CheckpointManager do
 
   @impl true
   def handle_call({:save, step, metrics, _opts}, _from, state) do
-    timestamp = System.system_time(:millisecond)
+    timestamp = System.system_time(:microsecond)
     name = "#{state.experiment_id}_step_#{step}_#{timestamp}"
     path = "tinker://#{state.experiment_id}/checkpoints/#{name}"
 

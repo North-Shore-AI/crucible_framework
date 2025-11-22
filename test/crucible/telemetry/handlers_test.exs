@@ -1,5 +1,5 @@
 defmodule Crucible.Telemetry.HandlersTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Crucible.Telemetry.{Handlers, MLMetrics}
 
@@ -36,8 +36,9 @@ defmodule Crucible.Telemetry.HandlersTest do
         %{experiment_id: "handler-test", step: 1, epoch: 1}
       )
 
-      # Give time for async processing
-      Process.sleep(50)
+      # Synchronize with GenServer to ensure async cast is processed
+      # A sync call ensures all prior messages (including casts) are processed
+      _ = MLMetrics.get_metrics(collector)
 
       # Verify it was recorded - the collector is registered for "handler-test"
       metrics = MLMetrics.get_metrics(collector)

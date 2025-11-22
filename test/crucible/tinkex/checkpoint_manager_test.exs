@@ -33,11 +33,16 @@ defmodule Crucible.Tinkex.CheckpointManagerTest do
 
     test "generates unique name with timestamp", %{manager: manager} do
       {:ok, cp1} = CheckpointManager.save(manager, 100, %{loss: 0.5})
-      # Small delay to ensure different timestamp
-      Process.sleep(1)
       {:ok, cp2} = CheckpointManager.save(manager, 100, %{loss: 0.4})
 
+      # Names should be unique even for same step (includes microsecond timestamp or counter)
       assert cp1.name != cp2.name
+
+      # Verify both checkpoints are stored and retrievable
+      checkpoints = CheckpointManager.list(manager)
+      checkpoint_names = Enum.map(checkpoints, & &1.name)
+      assert cp1.name in checkpoint_names
+      assert cp2.name in checkpoint_names
     end
 
     test "enforces max_checkpoints limit", %{manager: manager} do

@@ -2,8 +2,8 @@
 
 **A Comprehensive Guide for Researchers New to the Framework**
 
-Version: X.Y.Z
-Last Updated: 2025-11-12
+Version: 0.2.0
+Last Updated: 2025-11-21
 Target Audience: PhD students, ML researchers, scientists requiring rigorous LLM experimentation
 Estimated Reading Time: 45 minutes
 

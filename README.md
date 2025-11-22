@@ -38,83 +38,74 @@ The Crucible Framework is a comprehensive infrastructure for conducting **reprod
 
 ### Installation
 
-```bash
-# Clone repository
-git clone https://github.com/North-Shore-AI/crucible_framework.git
-cd crucible_framework
-
-# Install dependencies
-mix deps.get
-
-# Compile
-mix compile
-
-# Run tests
-mix test
-```
-
-### Your First Experiment
+Add `crucible_framework` to your `mix.exs`:
 
 ```elixir
-defmodule MyFirstExperiment do
-  use ResearchHarness.Experiment
-
-  # Define experiment
-  name "Ensemble vs Single Model"
-  dataset :mmlu_stem, sample_size: 100
-
-  conditions [
-    %{name: "baseline", fn: &baseline/1},
-    %{name: "ensemble", fn: &ensemble/1}
+def deps do
+  [
+    {:crucible_framework, "~> 0.2.0"}
   ]
-
-  metrics [:accuracy, :cost_per_query, :latency_p99]
-  repeat 3
-
-  # Baseline: Single model
-  def baseline(query) do
-    # Your single-model implementation
-    %{prediction: "answer", latency: 800, cost: 0.01}
-  end
-
-  # Treatment: 3-model ensemble
-  def ensemble(query) do
-    {:ok, result} = Ensemble.predict(query,
-      models: [:gpt4_mini, :claude_haiku, :gemini_flash],
-      strategy: :majority
-    )
-
-    %{
-      prediction: result.answer,
-      latency: result.metadata.latency_ms,
-      cost: result.metadata.cost_usd
-    }
-  end
 end
-
-# Run experiment
-{:ok, report} = ResearchHarness.run(MyFirstExperiment, output_dir: "results")
-
-# Results saved to:
-# - results/exp_abc123_report.md
-# - results/exp_abc123_results.csv
-# - results/exp_abc123_analysis.json
 ```
 
-**Output:**
-```markdown
-# Experiment Results
+Then fetch dependencies:
 
-## Summary
-- Ensemble accuracy: 96.3% (±1.2%)
-- Baseline accuracy: 89.1% (±2.1%)
-- Improvement: +7.2 percentage points
-- Statistical significance: p < 0.001, d = 3.42
-- Cost increase: 3.0× ($0.03 vs $0.01)
+```bash
+mix deps.get
+```
 
-## Conclusion
-Ensemble significantly outperforms baseline with very large effect size.
-Cost-accuracy ratio: $0.29 per percentage point improvement.
+### LoRA Training Workflow
+
+```elixir
+# 1. Create experiment
+{:ok, experiment} = Crucible.Lora.create_experiment(
+  name: "SciFact Fine-tuning",
+  config: %{
+    base_model: "llama-3-8b",
+    lora_rank: 16,
+    learning_rate: 1.0e-4
+  }
+)
+
+# 2. Load dataset
+{:ok, dataset} = Crucible.Datasets.load(:scifact, split: :train)
+
+# 3. Train with quality targets
+{:ok, metrics} = Crucible.Lora.train(experiment, dataset,
+  epochs: 5,
+  batch_size: 8,
+  checkpoint_every: 100,
+  quality_targets: %{
+    schema_compliance: 0.95,
+    citation_accuracy: 0.95
+  }
+)
+
+# 4. Evaluate results
+{:ok, eval} = Crucible.Lora.evaluate(experiment, test_dataset)
+
+# 5. Generate report
+{:ok, report} = Crucible.Reporter.generate(eval, format: :markdown)
+```
+
+### Ensemble Inference
+
+```elixir
+# Create ensemble from multiple adapters
+{:ok, ensemble} = Crucible.Ensemble.create(
+  adapters: [
+    %{name: "scifact-v1", weight: 0.4},
+    %{name: "scifact-v2", weight: 0.3},
+    %{name: "scifact-v3", weight: 0.3}
+  ],
+  strategy: :weighted_majority
+)
+
+# Run inference with hedging
+{:ok, result} = Crucible.Ensemble.infer(ensemble, prompt,
+  hedging: :percentile_75,
+  timeout: 5000
+)
 ```
 
 ---
@@ -123,12 +114,12 @@ Cost-accuracy ratio: $0.29 per percentage point improvement.
 
 The framework consists of **6 layers** organized as **8 independent OTP applications**:
 
-![Elixir AI Ecosystem](assets/elixir_ai_ecosystem.svg) 
-
 ```mermaid
 graph TB
     subgraph "Layer 6: Orchestration"
         RH[ResearchHarness<br/>Experiment DSL]
+        LORA[Crucible.Lora<br/>Training Interface]
+        TX[Crucible.Tinkex<br/>ML Adapter]
     end
 
     subgraph "Layer 5: Analysis & Reporting"
@@ -159,6 +150,8 @@ graph TB
     RH --> ENS
     RH --> HEDGE
     RH --> DS
+    LORA --> TX
+    TX --> TINKEX[Tinkex SDK]
     ENS --> CT
     BENCH --> OTP
     TEL --> OTP
@@ -172,6 +165,47 @@ graph TB
 ---
 
 ## Core Libraries
+
+### LoRA Integration Layer
+
+Crucible provides an adapter-agnostic API (`Crucible.Lora`) that funnels telemetry, checkpoints, and quality validation through a common interface. The default adapter (`Crucible.Tinkex`) drives the Tinkex SDK, but you can swap adapters via `config :crucible_framework, :lora_adapter, YourAdapter`.
+
+```elixir
+# config/runtime.exs
+config :crucible_framework, :lora_adapter, Crucible.Tinkex
+
+config :crucible_framework, Crucible.Tinkex,
+  api_key: System.fetch_env!("TINKEX_API_KEY"),
+  base_url: "https://api.tinker.example.com",
+  timeout: 60_000
+
+{:ok, experiment} =
+  Crucible.Lora.create_experiment(
+    name: "SciFact Fine-tuning",
+    config: %{
+      base_model: "llama-3-8b",
+      lora_rank: 16,
+      learning_rate: 1.0e-4
+    }
+  )
+
+# Training with automatic telemetry
+{:ok, metrics} = Crucible.Lora.train(experiment, dataset,
+  epochs: 5,
+  batch_size: 8,
+  checkpoint_every: 100
+)
+```
+
+**Adapter Capabilities**
+- `Crucible.Lora` - High-level helpers for batching, formatting, metrics, and checkpoints
+- `Crucible.Tinkex.Config` - API credentials, retry policies, default LoRA hyperparameters
+- `Crucible.Tinkex.Experiment` - Sweep/replication definitions and run generation
+- `Crucible.Tinkex.QualityValidator` - CNS3-derived schema/citation/entailment gates
+- `Crucible.Tinkex.Results` - Training/eval aggregation with CSV/export helpers
+- `Crucible.Tinkex.Telemetry` - Standardized `[:crucible, :tinkex, ...]` events
+
+You can implement additional adapters by satisfying the [`Crucible.Lora.Adapter`](./lib/crucible/lora/adapter.ex) behaviour.
 
 ### Ensemble: Multi-Model Voting
 
@@ -199,11 +233,11 @@ result.metadata.cost_usd   # => 0.045
 - `:parallel` - All models simultaneously (fastest)
 - `:sequential` - One at a time until consensus (cheapest)
 - `:hedged` - Primary with backups (balanced)
-- `:cascade` - Fast/cheap → slow/expensive
+- `:cascade` - Fast/cheap to slow/expensive
 
 **Expected Results:**
 - **Reliability:** 96-99% accuracy (vs 89-92% single model)
-- **Cost:** 3-5× single model cost
+- **Cost:** 3-5x single model cost
 - **Latency:** = slowest model in parallel mode
 
 **See [ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md) for deep dive.**
@@ -235,46 +269,6 @@ end,
 
 **See [HEDGING_GUIDE.md](./HEDGING_GUIDE.md) for theory and practice.**
 
-### LoRA Integration Layer
-
-Crucible provides an adapter-agnostic API (`Crucible.Lora`) that funnels telemetry, checkpoints, and quality validation through a common interface. The default adapter (`Crucible.Tinkex`) drives the Tinkex SDK, but you can swap adapters via `config :crucible_framework, :lora_adapter, YourAdapter`.
-
-```elixir
-# config/runtime.exs
-config :crucible_framework, :lora_adapter, Crucible.Tinkex
-
-{:ok, experiment} =
-  Crucible.Lora.create_experiment(
-    name: "SciFact Fine-tuning",
-    config: [api_key: System.fetch_env!("TINKEX_KEY")]
-  )
-
-Crucible.Tinkex.Telemetry.attach(experiment_id: experiment.id)
-
-experiment
-|> Crucible.Tinkex.Experiment.generate_runs()
-|> Enum.each(fn run ->
-  dataset
-  |> Crucible.Lora.batch_dataset(16)
-  |> Enum.each(fn batch ->
-    formatted = Crucible.Lora.format_training_data(batch)
-    # Forward/backward via adapter…
-  end)
-end)
-```
-
-**Adapter Capabilities**
-- `Crucible.Lora` – high-level helpers for batching, formatting, metrics, and checkpoints
-- `Crucible.Tinkex.Config` – API credentials, retry policies, default LoRA hyperparameters
-- `Crucible.Tinkex.Experiment` – sweep/replication definitions and run generation
-- `Crucible.Tinkex.QualityValidator` – CNS3-derived schema/citation/entailment gates
-- `Crucible.Tinkex.Results` – training/eval aggregation with CSV/export helpers
-- `Crucible.Tinkex.Telemetry` – standardized `[:crucible, :tinkex, ...]` events
-
-You can implement additional adapters by satisfying the [`Crucible.Lora.Adapter`](./lib/crucible/lora/adapter.ex) behaviour. This keeps Crucible decoupled from any one fine-tuning backend while still offering a batteries-included Tinkex implementation.
-
-See [INSTRUMENTATION.md](./INSTRUMENTATION.md) and [GETTING_STARTED.md](./GETTING_STARTED.md#tinkex-fine-tuning-integration) for setup details.
-
 ### Bench: Statistical Testing
 
 Rigorous statistical analysis for publication-quality results.
@@ -303,7 +297,7 @@ result = Bench.compare(control, treatment)
 **Features:**
 - **15+ statistical tests:** t-tests, ANOVA, Mann-Whitney, Wilcoxon, Kruskal-Wallis
 - **Automatic test selection:** Checks assumptions, selects appropriate test
-- **Effect sizes:** Cohen's d, η², ω², odds ratios
+- **Effect sizes:** Cohen's d, eta squared, omega squared, odds ratios
 - **Power analysis:** A priori and post-hoc
 - **Multiple comparison correction:** Bonferroni, Holm, Benjamini-Hochberg
 
@@ -358,6 +352,8 @@ results.accuracy  # => 0.96
 - **MMLU:** 15,908 questions across 57 subjects
 - **HumanEval:** 164 Python programming problems
 - **GSM8K:** 8,500 grade school math problems
+- **SciFact:** Scientific claim verification
+- **FEVER:** Fact extraction and verification
 - **Custom:** Load from JSONL files
 
 **Features:**
@@ -386,23 +382,11 @@ CausalTrace.open_visualization(chain)
 - Alternative consideration, constraint identification
 - Decision making, uncertainty flagging
 
-**Features:**
-- **Interactive HTML visualization:** Timeline, alternatives, confidence levels
-- **Storage:** JSON format on disk
-- **Search:** Query chains by criteria
-- **Export:** Markdown, CSV for analysis
-
-**Use Cases:**
-- Debugging LLM code generation
-- User trust studies
-- Model comparison
-- Prompt engineering
-
 **See [CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md) for details.**
 
 ### Security & Adversarial Robustness
 
-Protect your LLM systems from attacks, bias, and data quality issues with a comprehensive 4-library security stack.
+Protect your LLM systems from attacks, bias, and data quality issues.
 
 ```elixir
 # Complete security pipeline
@@ -415,119 +399,7 @@ Protect your LLM systems from attacks, bias, and data quality issues with a comp
 # - Data quality issues and drift
 ```
 
-**Four Security Libraries:**
-
-- **CrucibleAdversary** - 21 attack types (character, word, semantic, injection, jailbreak), defense mechanisms, robustness metrics (ASR, accuracy drop, consistency)
-- **LlmGuard** - AI firewall with 24+ prompt injection patterns, pipeline architecture, <10ms latency
-- **ExFairness** - 4 fairness metrics (demographic parity, equalized odds, equal opportunity, predictive parity), EEOC 80% rule compliance, bias mitigation
-- **ExDataCheck** - 22 data quality expectations, drift detection (KS test, PSI), outlier detection, continuous monitoring
-
-**Key Features:**
-- **21 Attack Types:** Character perturbations, prompt injection, jailbreak techniques, semantic attacks
-- **Defense Mechanisms:** Detection, filtering, sanitization with risk scoring
-- **Fairness Auditing:** 4 metrics with legal compliance (EEOC 80% rule)
-- **Data Quality:** 22 built-in expectations, distribution drift detection
-- **Production-Ready:** <30ms total security overhead, >90% test coverage
-
-**Example: Comprehensive Security Evaluation**
-
-```elixir
-# Evaluate model robustness against all attack types
-{:ok, evaluation} = CrucibleAdversary.evaluate(
-  MyModel,
-  test_set,
-  attacks: [:prompt_injection, :jailbreak_roleplay, :character_swap],
-  metrics: [:accuracy_drop, :asr, :consistency],
-  defense_mode: :strict
-)
-
-# Results:
-# - Attack Success Rate: 3.2% (target: <5%)
-# - Accuracy Drop: 6.8% (target: <10%)
-# - Fairness Compliance: ✅ Passes EEOC 80% rule
-# - Data Quality Score: 92/100
-```
-
-**See [ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md) for complete technical deep dive** including:
-- All 21 attack types with examples
-- Defense mechanisms and integration patterns
-- Fairness metrics and bias mitigation strategies
-- Data quality validation and drift detection
-- Complete security pipeline architecture
-- Links to all 4 component repositories
-
-### ResearchHarness: Experiment Orchestration
-
-High-level DSL for defining and running complete experiments.
-
-```elixir
-defmodule MyExperiment do
-  use ResearchHarness.Experiment
-
-  name "Hypothesis 1: Ensemble Reliability"
-  dataset :mmlu_stem, sample_size: 200
-
-  conditions [
-    %{name: "baseline", fn: &baseline/1},
-    %{name: "ensemble", fn: &ensemble/1}
-  ]
-
-  metrics [:accuracy, :latency_p99, :cost_per_query]
-  repeat 3
-  seed 42  # For reproducibility
-end
-
-{:ok, report} = ResearchHarness.run(MyExperiment)
-```
-
-**Features:**
-- **Declarative DSL:** Define experiments clearly
-- **Automatic execution:** Parallel processing with GenStage
-- **Fault tolerance:** Checkpointing every N queries
-- **Cost estimation:** Preview before running
-- **Statistical analysis:** Automatic with Bench
-- **Multi-format reports:** Markdown, LaTeX, HTML, Jupyter
-
----
-
-## Research Methodology
-
-The framework supports rigorous experimental research with **6 core hypotheses**:
-
-### H1: Ensemble Reliability (Primary)
-
-> A 5-model ensemble achieves ≥99% accuracy on MMLU-STEM, significantly higher than best single model (≤92%).
-
-**Design:** Randomized controlled trial
-- Control: GPT-4 single model
-- Treatment: 5-model majority vote ensemble
-- n=200 queries, 3 repetitions
-
-**Analysis:** Independent t-test, Cohen's d effect size
-
-**Expected Result:** d > 1.0 (very large effect)
-
-### H2: Hedging Latency Reduction (Primary)
-
-> Request hedging reduces P99 latency by ≥50% with <15% cost increase.
-
-**Design:** Paired comparison
-- Baseline vs P95 hedging
-- n=1000 API calls, 3 repetitions
-
-**Analysis:** Paired t-test on log-transformed latencies
-
-**Expected Result:** 60% P99 reduction, 10% cost increase
-
-### H3-H6: See [RESEARCH_METHODOLOGY.md](./RESEARCH_METHODOLOGY.md)
-
-**Complete methodology includes:**
-- Experimental designs (factorial, repeated measures, time series)
-- Statistical methods (parametric & non-parametric tests)
-- Power analysis for sample size determination
-- Multiple comparison correction
-- Reproducibility protocols
-- Publication guidelines
+**See [ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md) for complete technical deep dive.**
 
 ---
 
@@ -539,28 +411,6 @@ The framework supports rigorous experimental research with **6 core hypotheses**
 - **Erlang/OTP:** 25 or higher
 - **PostgreSQL:** 14+ (optional, for persistent telemetry storage)
 
-### Install Elixir
-
-**macOS:**
-```bash
-brew install elixir
-```
-
-**Ubuntu/Debian:**
-```bash
-wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
-sudo dpkg -i erlang-solutions_2.0_all.deb
-sudo apt-get update
-sudo apt-get install elixir
-```
-
-**From source:**
-```bash
-git clone https://github.com/elixir-lang/elixir.git
-cd elixir
-make clean test
-```
-
 ### Framework Installation
 
 ```bash
@@ -571,7 +421,7 @@ cd crucible_framework
 # Install dependencies
 mix deps.get
 
-# Compile all apps
+# Compile
 mix compile
 
 # Run tests
@@ -579,9 +429,6 @@ mix test
 
 # Generate documentation
 mix docs
-
-# View docs
-open doc/index.html
 ```
 
 ### Configuration
@@ -591,7 +438,19 @@ Create `config/config.exs`:
 ```elixir
 import Config
 
-# API Keys
+# Tinkex Configuration
+config :crucible_framework, Crucible.Tinkex,
+  api_key: System.get_env("TINKEX_API_KEY"),
+  base_url: "https://api.tinker.example.com",
+  timeout: 60_000,
+  pool_size: 10
+
+config :crucible_framework,
+  lora_adapter: Crucible.Tinkex,
+  telemetry_backend: :ets,
+  default_hedging: :percentile_75
+
+# API Keys for ensemble models
 config :ensemble,
   openai_api_key: System.get_env("OPENAI_API_KEY"),
   anthropic_api_key: System.get_env("ANTHROPIC_API_KEY"),
@@ -611,275 +470,24 @@ config :research_harness,
   results_dir: "./results"
 ```
 
-### Set API Keys
-
-```bash
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GOOGLE_API_KEY="..."
-```
-
-Or create `.env` file and use `dotenv`:
-
-```bash
-# .env
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_API_KEY=...
-```
-
 ---
 
-## Usage Examples
+## Documentation
 
-### Example 1: Simple Ensemble Comparison
-
-```elixir
-# Test if 3-model ensemble beats single model
-alias Ensemble
-alias DatasetManager
-
-# Load dataset
-{:ok, dataset} = DatasetManager.load(:mmlu_stem, sample_size: 100)
-
-# Run baseline (single model)
-baseline_results =
-  Enum.map(dataset.items, fn item ->
-    # Call GPT-4
-    {:ok, answer} = call_gpt4(item.input)
-    %{predicted: answer, expected: item.expected}
-  end)
-
-# Run ensemble (3 models)
-ensemble_results =
-  Enum.map(dataset.items, fn item ->
-    {:ok, result} = Ensemble.predict(item.input,
-      models: [:gpt4_mini, :claude_haiku, :gemini_flash],
-      strategy: :majority
-    )
-    %{predicted: result.answer, expected: item.expected}
-  end)
-
-# Evaluate
-{:ok, baseline_eval} = DatasetManager.evaluate(baseline_results, dataset: dataset)
-{:ok, ensemble_eval} = DatasetManager.evaluate(ensemble_results, dataset: dataset)
-
-# Compare with statistics
-baseline_accuracy = baseline_eval.accuracy
-ensemble_accuracy = ensemble_eval.accuracy
-
-Bench.compare([baseline_accuracy], [ensemble_accuracy])
-```
-
-### Example 2: Hedging Tail Latency
-
-```elixir
-alias Hedging
-
-# Measure baseline latencies
-baseline_latencies =
-  1..1000
-  |> Enum.map(fn _ ->
-    start = System.monotonic_time(:millisecond)
-    call_api()
-    finish = System.monotonic_time(:millisecond)
-    finish - start
-  end)
-
-# Measure hedged latencies
-hedged_latencies =
-  1..1000
-  |> Enum.map(fn _ ->
-    start = System.monotonic_time(:millisecond)
-
-    Hedging.request(fn -> call_api() end,
-      strategy: :percentile,
-      percentile: 95
-    )
-
-    finish = System.monotonic_time(:millisecond)
-    finish - start
-  end)
-
-# Calculate P99
-baseline_p99 = Statistics.percentile(baseline_latencies, 0.99)
-hedged_p99 = Statistics.percentile(hedged_latencies, 0.99)
-
-reduction = (baseline_p99 - hedged_p99) / baseline_p99
-IO.puts("P99 reduction: #{Float.round(reduction * 100, 1)}%")
-```
-
-### Example 3: Complete Experiment with Reporting
-
-```elixir
-defmodule EnsembleExperiment do
-  use ResearchHarness.Experiment
-
-  name "Ensemble Size Comparison"
-  description "Test 1, 3, 5, 7 model ensembles"
-
-  dataset :mmlu_stem, sample_size: 200
-
-  conditions [
-    %{name: "single", fn: &single_model/1},
-    %{name: "ensemble_3", fn: &ensemble_3/1},
-    %{name: "ensemble_5", fn: &ensemble_5/1},
-    %{name: "ensemble_7", fn: &ensemble_7/1}
-  ]
-
-  metrics [
-    :accuracy,
-    :consensus,
-    :cost_per_query,
-    :latency_p50,
-    :latency_p99
-  ]
-
-  repeat 3
-  seed 42
-
-  def single_model(query) do
-    {:ok, result} = call_gpt4(query)
-    %{prediction: result.answer, cost: 0.01, latency: 800}
-  end
-
-  def ensemble_3(query) do
-    {:ok, result} = Ensemble.predict(query,
-      models: [:gpt4_mini, :claude_haiku, :gemini_flash],
-      strategy: :majority
-    )
-    %{
-      prediction: result.answer,
-      consensus: result.metadata.consensus,
-      cost: result.metadata.cost_usd,
-      latency: result.metadata.latency_ms
-    }
-  end
-
-  def ensemble_5(query) do
-    {:ok, result} = Ensemble.predict(query,
-      models: [:gpt4_mini, :claude_haiku, :gemini_flash, :gpt35, :claude_sonnet],
-      strategy: :majority
-    )
-    %{
-      prediction: result.answer,
-      consensus: result.metadata.consensus,
-      cost: result.metadata.cost_usd,
-      latency: result.metadata.latency_ms
-    }
-  end
-
-  def ensemble_7(query) do
-    {:ok, result} = Ensemble.predict(query,
-      models: [:gpt4_mini, :claude_haiku, :gemini_flash, :gpt35, :claude_sonnet, :gpt4, :gemini_pro],
-      strategy: :majority
-    )
-    %{
-      prediction: result.answer,
-      consensus: result.metadata.consensus,
-      cost: result.metadata.cost_usd,
-      latency: result.metadata.latency_ms
-    }
-  end
-end
-
-# Run experiment
-{:ok, report} = ResearchHarness.run(EnsembleExperiment,
-  output_dir: "results/ensemble_size",
-  formats: [:markdown, :latex, :html, :jupyter]
-)
-
-# Results in:
-# - results/ensemble_size/exp_abc123_report.md
-# - results/ensemble_size/exp_abc123_report.tex
-# - results/ensemble_size/exp_abc123_report.html
-# - results/ensemble_size/exp_abc123_analysis.ipynb
-```
-
----
-
-## Performance Characteristics
-
-### Latency
-
-| Configuration | P50 | P95 | P99 |
-|---------------|-----|-----|-----|
-| Single model | 800ms | 2000ms | 5000ms |
-| 3-model ensemble | 1200ms | 2500ms | 6000ms |
-| Ensemble + hedging | 1200ms | 1800ms | 2200ms |
-
-### Throughput
-
-| Parallelism | Queries/sec |
-|-------------|-------------|
-| Sequential | 0.83 |
-| 50 concurrent | 41.7 |
-| 100 concurrent | 83.3 |
-
-### Cost
-
-| Configuration | Per Query | Per 1000 Queries |
-|---------------|-----------|------------------|
-| GPT-4 Mini | $0.0002 | $0.19 |
-| 3-model ensemble (cheap) | $0.0007 | $0.66 |
-| 5-model ensemble (mixed) | $0.0057 | $5.66 |
-
-### Memory
-
-| Component | Memory Usage |
-|-----------|--------------|
-| Empty process | ~2 KB |
-| Query process | ~5 KB |
-| HTTP client | ~15 KB |
-| ETS storage (100k events) | ~200 MB |
-
----
-
-## Reproducibility
-
-All experiments are fully reproducible:
-
-**1. Deterministic Seeding**
-```elixir
-# Set seed for all randomness
-seed 42
-
-# Query order, sampling, tie-breaking all deterministic
-```
-
-**2. Version Tracking**
-```yaml
-# Saved in experiment metadata
-framework_version: 0.1.5
-elixir_version: 1.14.0
-dataset_version: mmlu-1.0.0
-model_versions:
-  gpt4: gpt-4-0613
-  claude: claude-3-opus-20240229
-```
-
-**3. Complete Artifact Preservation**
-```
-results/exp_abc123/
-├── config.json          # Full configuration
-├── environment.json     # System info
-├── dataset.jsonl        # Exact dataset used
-├── results.csv          # Raw results
-├── analysis.json        # Statistical analysis
-└── checkpoints/         # Intermediate state
-```
-
-**4. Verification Protocol**
-```bash
-# Reproduce experiment
-git checkout <commit>
-mix deps.get
-export EXPERIMENT_SEED=42
-mix run experiments/h1_ensemble.exs
-
-# Results should be identical
-diff results/original results/reproduction
-```
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete system architecture (6-layer stack, library interactions)
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Installation, first experiment, troubleshooting
+- **[RESEARCH_METHODOLOGY.md](./RESEARCH_METHODOLOGY.md)** - 6 hypotheses, experimental designs, statistical methods
+- **[ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md)** - Deep dive into ensemble library, voting strategies
+- **[HEDGING_GUIDE.md](./HEDGING_GUIDE.md)** - Request hedging explained, Google's research
+- **[STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md)** - Using Bench for rigorous analysis
+- **[ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md)** - Complete security stack
+- **[INSTRUMENTATION.md](./INSTRUMENTATION.md)** - TelemetryResearch complete guide
+- **[DATASETS.md](./DATASETS.md)** - Supported datasets, adding custom datasets
+- **[CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md)** - Using CausalTrace
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute, code standards
+- **[PUBLICATIONS.md](./PUBLICATIONS.md)** - How to cite, paper templates
+- **[FAQ.md](./FAQ.md)** - Common questions, troubleshooting
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and migration guides
 
 ---
 
@@ -893,41 +501,9 @@ If you use this framework in your research, please cite:
   author = {Research Infrastructure Team},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.5}
+  version = {v0.2.0}
 }
 ```
-
-For specific experiments, also cite:
-
-```bibtex
-@misc{your_experiment2025,
-  title = {Your Experiment Title},
-  author = {Your Name},
-  year = {2025},
-  howpublished = {Open Science Framework},
-  url = {https://osf.io/xxxxx/}
-}
-```
-
-**See [PUBLICATIONS.md](./PUBLICATIONS.md) for paper templates and guidelines.**
-
----
-
-## Documentation
-
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete system architecture (6-layer stack, library interactions)
-- **[RESEARCH_METHODOLOGY.md](./RESEARCH_METHODOLOGY.md)** - 6 hypotheses, experimental designs, statistical methods
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Installation, first experiment, troubleshooting
-- **[ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md)** - Deep dive into ensemble library, voting strategies
-- **[HEDGING_GUIDE.md](./HEDGING_GUIDE.md)** - Request hedging explained, Google's research
-- **[STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md)** - Using Bench for rigorous analysis
-- **[ADVERSARIAL_ROBUSTNESS.md](./ADVERSARIAL_ROBUSTNESS.md)** - Complete security stack: 21 attacks, defenses, fairness, data quality
-- **[INSTRUMENTATION.md](./INSTRUMENTATION.md)** - TelemetryResearch complete guide
-- **[DATASETS.md](./DATASETS.md)** - Supported datasets, adding custom datasets
-- **[CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md)** - Using CausalTrace, user study protocols
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute, code standards
-- **[PUBLICATIONS.md](./PUBLICATIONS.md)** - How to cite, paper templates
-- **[FAQ.md](./FAQ.md)** - Common questions, troubleshooting
 
 ---
 
@@ -939,28 +515,13 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - Development workflow
 - Code standards
 - Testing requirements
-- Documentation standards
 - Pull request process
-
-**Quick contribution guide:**
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests (`mix test`)
-4. Commit changes (`git commit -m 'Add amazing feature'`)
-5. Push to branch (`git push origin feature/amazing-feature`)
-6. Open pull request
 
 ---
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/North-Shore-AI/crucible_framework/blob/main/LICENSE) file for details.
-
-**Key points:**
-- Free for academic and commercial use
-- Attribution required
-- No warranty
 
 ---
 
@@ -969,112 +530,14 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 - **Documentation:** https://hexdocs.pm/crucible_framework
 - **Issues:** https://github.com/North-Shore-AI/crucible_framework/issues
 - **Discussions:** https://github.com/North-Shore-AI/crucible_framework/discussions
-- **Email:** research@example.com
-
----
-
-## Acknowledgments
-
-**Inspired by:**
-- Google's "The Tail at Scale" research (Dean & Barroso, 2013)
-- Ensemble methods in ML (Breiman, 1996; Dietterich, 2000)
-- Statistical best practices (Cohen, 1988; Cumming, 2014)
-
-**Built with:**
-- [Elixir](https://elixir-lang.org) - Functional programming language
-- [OTP](https://www.erlang.org) - Fault-tolerant runtime
-- [Req](https://github.com/wojtekmach/req) - HTTP client
-- [Jason](https://github.com/michalmuskala/jason) - JSON parsing
-- [Telemetry](https://github.com/beam-telemetry/telemetry) - Instrumentation
-
-**Datasets:**
-- [MMLU](https://github.com/hendrycks/test) - Hendrycks et al., 2021
-- [HumanEval](https://github.com/openai/human-eval) - Chen et al., 2021
-- [GSM8K](https://github.com/openai/grade-school-math) - Cobbe et al., 2021
-
----
-
-## Roadmap
-
-### v0.2.0 (Q2 2025)
-- [ ] Distributed execution across multiple nodes
-- [ ] Real-time experiment monitoring dashboard
-- [ ] Additional datasets (BigBench, HELM)
-- [ ] Model-specific optimizations
-
-### v0.3.0 (Q3 2025)
-- [ ] AutoML for ensemble configuration
-- [ ] Cost optimization algorithms
-- [ ] Advanced visualizations (Plotly, D3.js)
-- [ ] Cloud deployment templates (AWS, GCP, Azure)
-
-### v1.0.0 (Q4 2025)
-- [ ] Production-ready stability
-- [ ] Complete test coverage (>95%)
-- [ ] Performance optimizations
-- [ ] Extended documentation
-- [ ] Tutorial videos
-
----
-
-## FAQs
-
-### Why Elixir?
-
-Elixir/OTP provides:
-- **Lightweight processes** (10k+ concurrent requests)
-- **Fault tolerance** (supervision trees handle failures)
-- **Immutability** (no race conditions)
-- **Hot code reloading** (update without stopping)
-- **Distributed** (scale across machines)
-
-Perfect for research requiring massive parallelism and reproducibility.
-
-### What's the learning curve?
-
-- **Beginner:** 1-2 days to run existing experiments
-- **Intermediate:** 1 week to write custom experiments
-- **Advanced:** 2-4 weeks to extend framework
-
-Prior Elixir experience helps but not required. Framework provides high-level DSL.
-
-### How much does it cost to run experiments?
-
-Depends on experiment size:
-
-- **Small (100 queries):** $0.50-$5
-- **Medium (1000 queries):** $5-$50
-- **Large (10k queries):** $50-$500
-
-Use cheap models (GPT-4 Mini, Claude Haiku, Gemini Flash) to minimize costs.
-
-### Is it production-ready?
-
-**For research:** Yes. Framework is stable, well-tested, and actively used.
-
-**For production systems:** Partially. Core libraries (Ensemble, Hedging) are production-ready. ResearchHarness is research-focused.
-
-### Can I use it without Elixir knowledge?
-
-Basic experiments: Yes, using provided templates.
-
-Custom experiments: Some Elixir knowledge required (functions, pattern matching, pipelines).
-
-**Resources:**
-- [Elixir Getting Started](https://elixir-lang.org/getting-started/introduction.html)
-- [Elixir School](https://elixirschool.com)
-
-### How do I cite this in my paper?
-
-See [Citation](#citation) section above and [PUBLICATIONS.md](./PUBLICATIONS.md) for LaTeX/BibTeX templates.
 
 ---
 
 **Status:** Active development
-**Version:** 0.1.5
+**Version:** v0.2.0
 **Last Updated:** 2025-11-21
 **Maintainers:** Research Infrastructure Team
 
 ---
 
-Built with ❤️ by researchers, for researchers.
+Built with care by researchers, for researchers.

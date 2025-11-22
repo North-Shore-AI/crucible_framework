@@ -230,7 +230,16 @@ defmodule Crucible.Telemetry.MLMetrics do
     metrics =
       :ets.tab2list(state.metrics_table)
       |> Enum.map(fn {_key, entry} -> entry end)
-      |> Enum.sort_by(& &1.timestamp, {:desc, DateTime})
+      |> Enum.sort_by(
+        fn entry -> {entry.timestamp, -Map.get(entry, :step, 0)} end,
+        fn {ts1, step1}, {ts2, step2} ->
+          case DateTime.compare(ts1, ts2) do
+            :gt -> true
+            :lt -> false
+            :eq -> step1 < step2
+          end
+        end
+      )
       |> filter_metrics(opts)
 
     {:reply, metrics, state}

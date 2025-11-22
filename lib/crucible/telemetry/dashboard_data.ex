@@ -17,7 +17,7 @@ defmodule Crucible.Telemetry.DashboardData do
       spec = DashboardData.to_vega_lite_spec(curve, :line)
   """
 
-  alias Crucible.Telemetry.{MLMetrics, ExperimentTracker}
+  alias Crucible.Telemetry.MLMetrics
 
   @type chart_type :: :line | :bar | :scatter | :heatmap
 

@@ -1,5 +1,7 @@
 defmodule Crucible.Hedging.AdaptiveRoutingTest do
-  use ExUnit.Case, async: true
+  use Supertester.ExUnitFoundation, isolation: :full_isolation
+
+  import Supertester.OTPHelpers
 
   alias Crucible.Hedging.AdaptiveRouting
 
@@ -10,11 +12,10 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
       %{name: "model3", weight: 0.2}
     ]
 
-    {:ok, router} = AdaptiveRouting.start_link(models: models, strategy: :round_robin)
-
-    on_exit(fn ->
-      if Process.alive?(router), do: GenServer.stop(router)
-    end)
+    {:ok, router} =
+      setup_isolated_genserver(AdaptiveRouting, "main_router",
+        init_args: %{models: models, strategy: :round_robin}
+      )
 
     %{router: router, models: models}
   end
@@ -22,18 +23,24 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
   describe "start_link/1" do
     test "starts router with models" do
       models = [%{name: "test_model", weight: 1.0}]
-      {:ok, pid} = AdaptiveRouting.start_link(models: models)
+
+      {:ok, pid} =
+        setup_isolated_genserver(AdaptiveRouting, "test_router",
+          init_args: %{models: models, strategy: :round_robin}
+        )
 
       assert Process.alive?(pid)
-      GenServer.stop(pid)
     end
 
     test "starts with specified strategy" do
       models = [%{name: "test_model", weight: 1.0}]
-      {:ok, pid} = AdaptiveRouting.start_link(models: models, strategy: :least_loaded)
+
+      {:ok, pid} =
+        setup_isolated_genserver(AdaptiveRouting, "strategy_router",
+          init_args: %{models: models, strategy: :least_loaded}
+        )
 
       assert Process.alive?(pid)
-      GenServer.stop(pid)
     end
   end
 
@@ -59,7 +66,10 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
         %{name: "model2", weight: 0.3}
       ]
 
-      {:ok, router} = AdaptiveRouting.start_link(models: models, strategy: :least_loaded)
+      {:ok, router} =
+        setup_isolated_genserver(AdaptiveRouting, "least_loaded_router",
+          init_args: %{models: models, strategy: :least_loaded}
+        )
 
       # Record some active requests
       AdaptiveRouting.record_request(router, "model1", :started, 0)
@@ -69,8 +79,6 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
 
       # Should select model2 (least loaded)
       assert selected.name == "model2"
-
-      GenServer.stop(router)
     end
 
     test "best_performing selects by success rate and latency" do
@@ -79,7 +87,10 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
         %{name: "model2", weight: 0.3}
       ]
 
-      {:ok, router} = AdaptiveRouting.start_link(models: models, strategy: :best_performing)
+      {:ok, router} =
+        setup_isolated_genserver(AdaptiveRouting, "best_performing_router",
+          init_args: %{models: models, strategy: :best_performing}
+        )
 
       # Model1: 50% success, avg 100ms
       AdaptiveRouting.record_request(router, "model1", true, 100)
@@ -93,8 +104,6 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
 
       # Should select model2 (better performance)
       assert selected.name == "model2"
-
-      GenServer.stop(router)
     end
 
     test "weighted respects model weights" do
@@ -103,7 +112,10 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
         %{name: "light", weight: 0.1}
       ]
 
-      {:ok, router} = AdaptiveRouting.start_link(models: models, strategy: :weighted)
+      {:ok, router} =
+        setup_isolated_genserver(AdaptiveRouting, "weighted_router",
+          init_args: %{models: models, strategy: :weighted}
+        )
 
       # Select 100 times
       selections =
@@ -116,8 +128,6 @@ defmodule Crucible.Hedging.AdaptiveRoutingTest do
 
       # Heavy should be selected significantly more
       assert counts["heavy"] > counts["light"] * 3
-
-      GenServer.stop(router)
     end
   end
 

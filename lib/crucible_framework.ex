@@ -67,7 +67,7 @@ defmodule CrucibleFramework do
   ## Examples
 
       iex> CrucibleFramework.version()
-      "0.1.5"
+      "0.2.0"
   """
   @spec version() :: String.t()
   def version, do: @version

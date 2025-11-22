@@ -277,7 +277,7 @@ defmodule Crucible.Hedging.InferenceHedger do
     end
   end
 
-  defp compute_adaptive_delay(hedger, clients) do
+  defp compute_adaptive_delay(hedger, _clients) do
     # Use recent performance across all models
     all_latencies =
       hedger.latency_history

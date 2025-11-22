@@ -41,7 +41,7 @@ defmodule Crucible.Hedging.MLTest do
 
       inference_fn = fn _client -> {:error, :timeout} end
 
-      result = ML.dispatch(clients, inference_fn, %{})
+      result = ML.dispatch(clients, inference_fn, %{timeout: 100})
 
       assert {:error, _} = result
     end

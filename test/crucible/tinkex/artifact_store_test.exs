@@ -26,7 +26,7 @@ defmodule Crucible.Tinkex.ArtifactStoreTest do
   end
 
   describe "store/3" do
-    test "stores artifact with checksum", %{tmp_dir: tmp_dir} do
+    test "stores artifact with checksum", %{tmp_dir: _tmp_dir} do
       content = "test artifact content"
 
       {:ok, artifact} = ArtifactStore.store("test-artifact", content)
@@ -148,12 +148,10 @@ defmodule Crucible.Tinkex.ArtifactStoreTest do
 
   describe "cleanup/1" do
     test "removes oldest artifacts when over size limit" do
-      # Store artifacts with different timestamps
-      ArtifactStore.store("old-artifact", String.duplicate("a", 100))
-      Process.sleep(10)
-      ArtifactStore.store("medium-artifact", String.duplicate("b", 100))
-      Process.sleep(10)
-      ArtifactStore.store("new-artifact", String.duplicate("c", 100))
+      # Store artifacts sequentially - timestamps are assigned on creation
+      {:ok, _} = ArtifactStore.store("old-artifact", String.duplicate("a", 100))
+      {:ok, _} = ArtifactStore.store("medium-artifact", String.duplicate("b", 100))
+      {:ok, _} = ArtifactStore.store("new-artifact", String.duplicate("c", 100))
 
       # Cleanup to 200 bytes (should remove oldest)
       {:ok, removed_count} = ArtifactStore.cleanup(200)
@@ -165,9 +163,8 @@ defmodule Crucible.Tinkex.ArtifactStoreTest do
     end
 
     test "preserves most recent artifacts" do
-      ArtifactStore.store("old", String.duplicate("x", 50))
-      Process.sleep(10)
-      ArtifactStore.store("new", String.duplicate("y", 50))
+      {:ok, _} = ArtifactStore.store("old", String.duplicate("x", 50))
+      {:ok, _} = ArtifactStore.store("new", String.duplicate("y", 50))
 
       {:ok, _} = ArtifactStore.cleanup(50)
 

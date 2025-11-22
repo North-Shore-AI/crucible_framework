@@ -5,13 +5,127 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2025-11-21
 
 ### Added
-- **Supertester test isolation** - Added `supertester` dependency and adopted its ExUnit foundation/OTP helpers in Tinkex API and runner tests for deterministic async execution.
+
+#### Tinkex Integration - Unified ML Training API
+- **Crucible.Tinkex Adapter**: Complete integration with Tinkex SDK for LoRA fine-tuning
+  - `Crucible.Tinkex.Config` - API credentials, retry policies, default LoRA hyperparameters, quality targets
+  - `Crucible.Tinkex.Experiment` - Declarative experiment structure for datasets, sweeps, checkpoints, and replications
+  - `Crucible.Tinkex.QualityValidator` - CNS3-derived schema/citation/entailment quality gates
+  - `Crucible.Tinkex.Results` - Training/eval aggregation with CSV export and best-run selection
+  - `Crucible.Tinkex.Telemetry` - Standardized `[:crucible, :tinkex, ...]` events
+
+#### LoRA Training Interface
+- **Crucible.Lora**: High-level adapter-agnostic training interface
+  - `create_experiment/1` - Create new training experiments with configuration
+  - `train/3` - Run LoRA fine-tuning with automatic checkpointing and quality targets
+  - `evaluate/3` - Evaluate trained models against test datasets
+  - `resume/2` - Resume training from checkpoint
+  - `batch_dataset/2` - Efficient dataset batching
+  - `format_training_data/1` - Format data for training backend
+  - `checkpoint_name/2` - Deterministic artifact naming
+- **Crucible.Lora.Adapter**: Behaviour for implementing custom training backends
+  - Swap adapters via `config :crucible_framework, :lora_adapter, MyAdapter`
+
+#### Ensemble Inference with LoRA Adapters
+- **Crucible.Ensemble.create/1**: Create ensembles from multiple fine-tuned LoRA adapters
+- **Crucible.Ensemble.infer/3**: Run ensemble inference with voting and hedging
+- **Crucible.Ensemble.batch_infer/3**: Batch processing for multiple prompts
+- Support for weighted adapter configurations in ensemble voting
+
+#### Configuration Architecture
+- Hierarchical configuration: application-level, component-level, per-experiment
+- Environment variable support via `{:system, "VAR_NAME"}` syntax
+- Per-experiment configuration overrides at runtime
+
+#### New Telemetry Events
+- `[:crucible, :training, :start | :stop | :exception]` - Training lifecycle
+- `[:crucible, :inference, :start | :stop | :exception]` - Inference lifecycle
+- `[:crucible, :checkpoint, :save | :load]` - Checkpoint operations
+- `[:crucible, :tinkex, :forward_backward | :optim_step | :save_weights]` - Low-level Tinkex operations
+
+#### Documentation
+- Updated README with LoRA training workflow quick start
+- Updated ARCHITECTURE.md with Tinkex integration layer diagrams
+- Updated GETTING_STARTED.md with complete training walkthrough
+- Added data flow diagrams for training and inference paths
 
 ### Changed
-- **Tinkex job/telemetry processes** - `JobQueue`, `JobStore`, and `TelemetryBroker` now start unlinked via `GenServer.start/3` and expose a `:__supertester_sync__` call for safe synchronization in concurrent tests, eliminating intermittent process-not-alive failures.
+- **mix.exs**: Added `tinkex ~> 0.1.0` as core dependency
+- **Version**: Bumped to 0.2.0 reflecting significant new functionality
+- **Error handling**: Unified structured errors via `Crucible.Error` across all components
+- **Telemetry**: Enhanced instrumentation with experiment context propagation
+
+### Migration Guide from 0.1.x
+
+#### 1. Add Tinkex Configuration
+
+```elixir
+# config/config.exs
+config :crucible_framework, Crucible.Tinkex,
+  api_key: System.get_env("TINKEX_API_KEY"),
+  base_url: "https://api.tinker.example.com",
+  timeout: 60_000,
+  pool_size: 10
+
+config :crucible_framework,
+  lora_adapter: Crucible.Tinkex,
+  telemetry_backend: :ets,
+  default_hedging: :percentile_75
+```
+
+#### 2. Update Experiment Creation
+
+```elixir
+# Old approach (0.1.x)
+experiment = %{name: "my-experiment", ...}
+
+# New approach (0.2.0)
+{:ok, experiment} = Crucible.Lora.create_experiment(
+  name: "my-experiment",
+  config: %{
+    base_model: "llama-3-8b",
+    lora_rank: 16,
+    learning_rate: 1.0e-4
+  }
+)
+```
+
+#### 3. Update Ensemble Usage
+
+```elixir
+# Old approach (using crucible_ensemble directly)
+{:ok, result} = CrucibleEnsemble.vote(models, prompt, strategy)
+
+# New approach (unified API with adapters)
+{:ok, ensemble} = Crucible.Ensemble.create(
+  adapters: [
+    %{name: "adapter-v1", weight: 0.4},
+    %{name: "adapter-v2", weight: 0.3},
+    %{name: "adapter-v3", weight: 0.3}
+  ],
+  strategy: :weighted_majority
+)
+{:ok, result} = Crucible.Ensemble.infer(ensemble, prompt)
+```
+
+#### 4. Telemetry Handler Updates
+
+```elixir
+# New events to handle
+:telemetry.attach_many(
+  "my-handler",
+  [
+    [:crucible, :training, :stop],
+    [:crucible, :inference, :stop],
+    [:crucible, :checkpoint, :save]
+  ],
+  &MyApp.TelemetryHandler.handle_event/4,
+  nil
+)
+```
 
 ## [0.1.5] - 2025-11-21
 

@@ -48,7 +48,7 @@ defmodule Crucible.Datasets.BatchIteratorTest do
     test "returns next batch", %{dataset: dataset} do
       iterator = BatchIterator.new(dataset, batch_size: 10, shuffle: false)
 
-      {batch, iterator2} = BatchIterator.next(iterator)
+      {batch, _iterator2} = BatchIterator.next(iterator)
 
       assert length(batch) == 10
       assert hd(batch).id == 1

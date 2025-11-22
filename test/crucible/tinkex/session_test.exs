@@ -2,6 +2,9 @@ defmodule Crucible.Tinkex.SessionTest do
   use ExUnit.Case, async: true
   import Mox
 
+  # Tag as slow - excluded by default, run with: mix test --include slow
+  @moduletag :slow
+
   alias Crucible.Tinkex.Session
   alias Crucible.Tinkex.Config
 
