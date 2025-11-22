@@ -56,7 +56,8 @@ defmodule CrucibleFramework.MixProject do
       groups_for_extras: groups_for_extras(),
       assets: %{"assets" => "assets"},
       logo: "assets/crucible_framework.svg",
-      before_closing_head_tag: &mermaid_config/1
+      before_closing_head_tag: &mermaid_head/1,
+      before_closing_body_tag: &mermaid_body/1
     ]
   end
 
@@ -76,7 +77,12 @@ defmodule CrucibleFramework.MixProject do
       "CONTRIBUTING.md",
       "FAQ.md",
       "PUBLICATIONS.md",
-      "CHANGELOG.md"
+      "CHANGELOG.md",
+      "docs/tinkex_integration/00_architecture_overview.md",
+      "docs/tinkex_integration/01_tinkex_adapter.md",
+      "docs/tinkex_integration/02_lora_training_interface.md",
+      "docs/tinkex_integration/03_ensemble_ml_integration.md",
+      "docs/tinkex_integration/BUILD_PROMPT.md"
     ]
   end
 
@@ -100,6 +106,13 @@ defmodule CrucibleFramework.MixProject do
         "INSTRUMENTATION.md",
         "DATASETS.md"
       ],
+      "Tinkex Integration": [
+        "docs/tinkex_integration/00_architecture_overview.md",
+        "docs/tinkex_integration/01_tinkex_adapter.md",
+        "docs/tinkex_integration/02_lora_training_interface.md",
+        "docs/tinkex_integration/03_ensemble_ml_integration.md",
+        "docs/tinkex_integration/BUILD_PROMPT.md"
+      ],
       Contributing: [
         "CONTRIBUTING.md"
       ],
@@ -112,9 +125,16 @@ defmodule CrucibleFramework.MixProject do
     ]
   end
 
-  defp mermaid_config(:html) do
+  defp mermaid_head(:html) do
     """
     <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js"></script>
+    """
+  end
+
+  defp mermaid_head(_), do: ""
+
+  defp mermaid_body(:html) do
+    """
     <script>
       let initialized = false;
 
@@ -145,14 +165,14 @@ defmodule CrucibleFramework.MixProject do
     """
   end
 
-  defp mermaid_config(_), do: ""
+  defp mermaid_body(_), do: ""
 
   defp package do
     [
       name: "crucible_framework",
       description: description(),
       files:
-        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md ADVERSARIAL_ROBUSTNESS.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE lib assets),
+        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md ADVERSARIAL_ROBUSTNESS.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE lib assets docs),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,

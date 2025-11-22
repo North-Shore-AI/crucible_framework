@@ -484,6 +484,7 @@ config :research_harness,
 - **[INSTRUMENTATION.md](./INSTRUMENTATION.md)** - TelemetryResearch complete guide
 - **[DATASETS.md](./DATASETS.md)** - Supported datasets, adding custom datasets
 - **[CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md)** - Using CausalTrace
+- **Tinkex Integration Docs:** [Architecture Overview](./docs/tinkex_integration/00_architecture_overview.md), [Adapter Implementation](./docs/tinkex_integration/01_tinkex_adapter.md), [LoRA Training Interface](./docs/tinkex_integration/02_lora_training_interface.md), [Ensemble & ML Integration](./docs/tinkex_integration/03_ensemble_ml_integration.md), [Build Prompt](./docs/tinkex_integration/BUILD_PROMPT.md)
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute, code standards
 - **[PUBLICATIONS.md](./PUBLICATIONS.md)** - How to cite, paper templates
 - **[FAQ.md](./FAQ.md)** - Common questions, troubleshooting
