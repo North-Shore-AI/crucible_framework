@@ -23,7 +23,7 @@ defmodule Crucible.Tinkex.TelemetryBroker do
   @spec ensure_started() :: :ok | {:error, term()}
   def ensure_started do
     case Process.whereis(__MODULE__) do
-      nil -> start_link([])
+      nil -> GenServer.start(__MODULE__, [], name: __MODULE__)
       _ -> :ok
     end
 
@@ -77,6 +77,11 @@ defmodule Crucible.Tinkex.TelemetryBroker do
     end)
 
     :ok
+  end
+
+  @impl true
+  def handle_call(:__supertester_sync__, _from, state) do
+    {:reply, :ok, state}
   end
 
   @impl true

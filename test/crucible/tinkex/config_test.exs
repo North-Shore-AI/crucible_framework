@@ -33,24 +33,24 @@ defmodule Crucible.Tinkex.ConfigTest do
     end
 
     test "reads api_key from application env if not provided" do
-      Application.put_env(:crucible_tinkex, :api_key, "env-key")
-      on_exit(fn -> Application.delete_env(:crucible_tinkex, :api_key) end)
+      Application.put_env(:crucible_framework, :api_key, "env-key")
+      on_exit(fn -> Application.delete_env(:crucible_framework, :api_key) end)
 
       config = Config.new()
       assert config.api_key == "env-key"
     end
 
     test "reads base_url from application env if not provided" do
-      Application.put_env(:crucible_tinkex, :base_url, "https://env.example.com")
-      on_exit(fn -> Application.delete_env(:crucible_tinkex, :base_url) end)
+      Application.put_env(:crucible_framework, :base_url, "https://env.example.com")
+      on_exit(fn -> Application.delete_env(:crucible_framework, :base_url) end)
 
       config = Config.new()
       assert config.base_url == "https://env.example.com"
     end
 
     test "explicit values override application env" do
-      Application.put_env(:crucible_tinkex, :api_key, "env-key")
-      on_exit(fn -> Application.delete_env(:crucible_tinkex, :api_key) end)
+      Application.put_env(:crucible_framework, :api_key, "env-key")
+      on_exit(fn -> Application.delete_env(:crucible_framework, :api_key) end)
 
       config = Config.new(api_key: "explicit-key")
       assert config.api_key == "explicit-key"

@@ -1,13 +1,16 @@
 defmodule Crucible.Tinkex.JobRunnerTest do
-  use ExUnit.Case, async: true
+  use Supertester.ExUnitFoundation, isolation: :full_isolation
+
+  import Supertester.OTPHelpers
 
   alias Crucible.Tinkex.Job
   alias Crucible.Tinkex.JobRunner
   alias Crucible.Tinkex.TelemetryBroker
 
   setup do
-    Application.put_env(:crucible_tinkex, :runner_mode, :simulate)
-    TelemetryBroker.ensure_started()
+    Application.put_env(:crucible_framework, :runner_mode, :simulate)
+    :ok = TelemetryBroker.ensure_started()
+    :ok = wait_for_genserver_sync(TelemetryBroker)
     :ok
   end
 

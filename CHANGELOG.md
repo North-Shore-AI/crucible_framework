@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Supertester test isolation** - Added `supertester` dependency and adopted its ExUnit foundation/OTP helpers in Tinkex API and runner tests for deterministic async execution.
+
+### Changed
+- **Tinkex job/telemetry processes** - `JobQueue`, `JobStore`, and `TelemetryBroker` now start unlinked via `GenServer.start/3` and expose a `:__supertester_sync__` call for safe synchronization in concurrent tests, eliminating intermittent process-not-alive failures.
+
+## [0.1.4] - 2025-11-12
+
+### Changed
+- **Tinkex overlay configuration namespace** - Moved API auth, config, job queue/runner, and related documentation/tests to read application env under `:crucible_framework` instead of `:crucible_tinkex`, ensuring credentials and hooks resolve through the framework app configuration.
+
 ## [0.1.3] - 2025-11-21
 
 ### Added

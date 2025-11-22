@@ -5,7 +5,7 @@ defmodule Crucible.Tinkex.API.Auth do
   The CNS blueprint requires service authentication at the API layer without
   exposing Tinkex credentials. This module enforces that rule by validating
   bearer-style tokens supplied by external clients while keeping the actual
-  Tinkex API key contained inside the `crucible_tinkex` application.
+  Tinkex API key contained inside the `crucible_framework` application config.
   """
 
   @type headers :: [{String.t(), String.t()}]
@@ -13,7 +13,7 @@ defmodule Crucible.Tinkex.API.Auth do
   @doc """
   Validates that the caller provided a known API token.
 
-  The accepted tokens are configured under `:crucible_tinkex, :api_tokens`
+  The accepted tokens are configured under `:crucible_framework, :api_tokens`
   as a list of strings. Returns the token that was validated to support
   downstream auditing.
   """
@@ -35,6 +35,6 @@ defmodule Crucible.Tinkex.API.Auth do
   end
 
   defp configured_tokens do
-    Application.get_env(:crucible_tinkex, :api_tokens, [])
+    Application.get_env(:crucible_framework, :api_tokens, [])
   end
 end

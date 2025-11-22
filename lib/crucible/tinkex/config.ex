@@ -35,11 +35,13 @@ defmodule Crucible.Tinkex.Config do
 
   Configuration can also be set via application environment:
 
-      config :crucible_tinkex,
+      config :crucible_framework,
         api_key: "your-api-key",
         base_url: "https://tinker.example.com"
 
   """
+
+  @app_env :crucible_framework
 
   @type t :: %__MODULE__{
           api_key: String.t() | nil,
@@ -97,23 +99,23 @@ defmodule Crucible.Tinkex.Config do
   @spec new(keyword()) :: t()
   def new(opts \\ []) do
     %__MODULE__{
-      api_key: opts[:api_key] || Application.get_env(:crucible_tinkex, :api_key),
-      base_url: opts[:base_url] || Application.get_env(:crucible_tinkex, :base_url),
+      api_key: opts[:api_key] || Application.get_env(@app_env, :api_key),
+      base_url: opts[:base_url] || Application.get_env(@app_env, :base_url),
       timeout: opts[:timeout] || 120_000,
       max_retries: opts[:max_retries] || 3,
       default_base_model:
         opts[:default_base_model] ||
           Application.get_env(
-            :crucible_tinkex,
+            @app_env,
             :default_base_model,
             "meta-llama/Llama-3.1-8B-Instruct"
           ),
       default_lora_rank:
         opts[:default_lora_rank] ||
-          Application.get_env(:crucible_tinkex, :default_lora_rank, 16),
+          Application.get_env(@app_env, :default_lora_rank, 16),
       quality_targets:
         opts[:quality_targets] ||
-          Application.get_env(:crucible_tinkex, :quality_targets, %{
+          Application.get_env(@app_env, :quality_targets, %{
             schema_compliance: 0.95,
             citation_accuracy: 0.95,
             mean_entailment: 0.50,

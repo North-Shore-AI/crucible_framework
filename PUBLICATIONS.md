@@ -27,26 +27,26 @@ When using the framework in general, cite:
 
 ```
 North Shore AI. (2025). CrucibleFramework: Infrastructure for LLM Reliability Research
-(Version 0.1.3) [Computer software]. https://github.com/North-Shore-AI/crucible_framework
+(Version 0.1.4) [Computer software]. https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **APA Style:**
 ```
 North Shore AI. (2025). CrucibleFramework: Infrastructure for LLM Reliability Research
-(Version 0.1.3) [Computer software]. GitHub. https://github.com/North-Shore-AI/crucible_framework
+(Version 0.1.4) [Computer software]. GitHub. https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **IEEE Style:**
 ```
 North Shore AI, "CrucibleFramework: Infrastructure for LLM Reliability Research,"
-version 0.1.3, 2025. [Online]. Available:
+version 0.1.4, 2025. [Online]. Available:
 https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **MLA Style:**
 ```
 North Shore AI. CrucibleFramework: Infrastructure for LLM Reliability Research.
-Version 0.1.3, GitHub, 2025, github.com/North-Shore-AI/crucible_framework.
+Version 0.1.4, GitHub, 2025, github.com/North-Shore-AI/crucible_framework.
 ```
 
 ### Citing Specific Libraries
@@ -56,21 +56,21 @@ When using a specific library extensively, also cite that library:
 **Ensemble Library:**
 ```
 North Shore AI. (2025). CrucibleFramework Ensemble Module: Multi-model voting for AI reliability
-(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+(Version 0.1.4) [Computer software]. Part of CrucibleFramework.
 https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **Hedging Library:**
 ```
 North Shore AI. (2025). CrucibleFramework Hedging Module: Request hedging for tail latency reduction
-(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+(Version 0.1.4) [Computer software]. Part of CrucibleFramework.
 https://github.com/North-Shore-AI/crucible_framework
 ```
 
 **Bench Library:**
 ```
 North Shore AI. (2025). CrucibleFramework Bench Module: Statistical testing for AI research
-(Version 0.1.3) [Computer software]. Part of CrucibleFramework.
+(Version 0.1.4) [Computer software]. Part of CrucibleFramework.
 https://github.com/North-Shore-AI/crucible_framework
 ```
 
@@ -99,7 +99,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {A scientifically rigorous infrastructure for LLM reliability and performance research}
 }
 ```
@@ -113,7 +113,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {ensemble learning, voting strategies, LLM reliability}
 }
@@ -128,7 +128,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework. Implements techniques from Dean \& Barroso (2013)},
   keywords = {tail latency, request hedging, distributed systems}
 }
@@ -143,7 +143,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {statistical testing, effect sizes, reproducibility}
 }
@@ -158,7 +158,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {instrumentation, telemetry, experiment tracking}
 }
@@ -173,7 +173,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {benchmarks, datasets, evaluation}
 }
@@ -188,7 +188,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {transparency, provenance, explainability}
 }
@@ -203,7 +203,7 @@ The framework's ensemble module provides four voting strategies...
   year = {2025},
   month = {11},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Part of CrucibleFramework},
   keywords = {experiment design, orchestration, reproducibility}
 }
@@ -699,8 +699,8 @@ Document exact computational environment:
 # environment.yml
 framework:
   name: crucible_framework
-  version: 0.1.3
-  commit: v0.1.3
+  version: 0.1.4
+  commit: v0.1.4
 
 runtime:
   elixir: 1.17.0
@@ -775,7 +775,7 @@ experiment_name/
 
 We thank the contributors to CrucibleFramework for providing
 the infrastructure that enabled this research. Experiments were conducted
-using version 0.1.3 of the framework.
+using version 0.1.4 of the framework.
 ```
 
 ### Specific Library Usage
@@ -986,7 +986,7 @@ If dataset is proprietary:
 ---
 
 **Last Updated:** 2025-11-21
-**Version:** 0.1.3
+**Version:** 0.1.4
 **Maintainers:** North Shore AI
 
 ---

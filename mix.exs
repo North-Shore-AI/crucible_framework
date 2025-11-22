@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.1.3"
+  @version "0.1.4"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -26,6 +26,7 @@ defmodule CrucibleFramework.MixProject do
       {:tinkex, "~> 0.1.0"},
 
       # Testing
+      {:supertester, "~> 0.3.1", only: :test},
       {:mox, "~> 1.1", only: :test},
       {:stream_data, "~> 1.0", only: [:dev, :test]},
 

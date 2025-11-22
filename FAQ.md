@@ -1396,7 +1396,7 @@ for experiment orchestration and statistical analysis.
   author = {{North Shore AI}},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3}
+  version = {0.1.4}
 }
 ```
 
@@ -1407,7 +1407,7 @@ for experiment orchestration and statistical analysis.
   author = {{North Shore AI}},
   year = {2025},
   url = {https://github.com/North-Shore-AI/crucible_framework},
-  version = {0.1.3},
+  version = {0.1.4},
   note = {Reference the specific module you relied on}
 }
 ```
@@ -1705,7 +1705,7 @@ See CONTRIBUTING.md for detailed guidelines.
 
 ## Environment
 
-- Framework version: 0.1.3
+- Framework version: 0.1.4
 - Elixir version: 1.17.0
 - Erlang version: 26.2.1
 - OS: Ubuntu 22.04
@@ -1888,8 +1888,8 @@ ResearchHarness.run(MyExperiment,
 
 ---
 
-**Last Updated:** 2025-11-21
-**Version:** 0.1.3
+**Last Updated:** 2025-11-12
+**Version:** 0.1.4
 **Maintainers:** North Shore AI
 
 ---

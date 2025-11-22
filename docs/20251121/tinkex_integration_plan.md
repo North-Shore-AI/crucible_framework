@@ -1112,7 +1112,7 @@ end
 # config/config.exs
 import Config
 
-config :crucible_tinkex,
+config :crucible_framework,
   default_base_model: "meta-llama/Llama-3.1-8B-Instruct",
   default_lora_rank: 16,
   quality_targets: %{

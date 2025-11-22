@@ -21,7 +21,7 @@ defmodule Crucible.Tinkex.JobStore do
   @spec ensure_started() :: :ok | {:error, term()}
   def ensure_started do
     case Process.whereis(__MODULE__) do
-      nil -> start_link([])
+      nil -> GenServer.start(__MODULE__, [], name: __MODULE__)
       _pid -> :ok
     end
 

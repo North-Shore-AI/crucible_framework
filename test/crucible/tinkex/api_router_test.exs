@@ -1,14 +1,24 @@
 defmodule Crucible.Tinkex.APIRouterTest do
-  use ExUnit.Case, async: true
+  use Supertester.ExUnitFoundation, isolation: :full_isolation
+
+  import Supertester.OTPHelpers
 
   alias Crucible.Tinkex.API.Router
   alias Crucible.Tinkex.TelemetryBroker
+  alias Crucible.Tinkex.JobQueue
+  alias Crucible.Tinkex.JobStore
 
   setup do
-    Application.put_env(:crucible_tinkex, :api_tokens, ["test-token"])
+    :ok = JobQueue.ensure_started()
+    :ok = JobStore.ensure_started()
+    :ok = TelemetryBroker.ensure_started()
+    :ok = wait_for_genserver_sync(JobQueue)
+    :ok = wait_for_genserver_sync(TelemetryBroker)
+
+    Application.put_env(:crucible_framework, :api_tokens, ["test-token"])
 
     Application.put_env(
-      :crucible_tinkex,
+      :crucible_framework,
       :job_submit_fun,
       &Crucible.Tinkex.JobQueue.noop_submit/1
     )

@@ -28,7 +28,7 @@ defmodule Crucible.Tinkex.JobQueue do
   @spec ensure_started(keyword()) :: :ok | {:error, term()}
   def ensure_started(opts \\ []) do
     case Process.whereis(__MODULE__) do
-      nil -> start_link(opts)
+      nil -> GenServer.start(__MODULE__, opts, name: __MODULE__)
       _pid -> :ok
     end
 
@@ -64,7 +64,7 @@ defmodule Crucible.Tinkex.JobQueue do
       concurrency: opts[:concurrency] || @default_concurrency,
       submit_fun:
         opts[:submit_fun] ||
-          Application.get_env(:crucible_tinkex, :job_submit_fun, &JobRunner.submit/1)
+          Application.get_env(:crucible_framework, :job_submit_fun, &JobRunner.submit/1)
     }
 
     {:ok, state}
@@ -96,6 +96,10 @@ defmodule Crucible.Tinkex.JobQueue do
       {:error, :not_found} ->
         {:reply, {:error, :not_found}, state}
     end
+  end
+
+  def handle_call(:__supertester_sync__, _from, state) do
+    {:reply, :ok, state}
   end
 
   @impl true

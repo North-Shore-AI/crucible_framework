@@ -26,7 +26,7 @@ defmodule Crucible.Tinkex.JobRunner do
   end
 
   defp runner_mode do
-    Application.get_env(:crucible_tinkex, :runner_mode, :simulate)
+    Application.get_env(:crucible_framework, :runner_mode, :simulate)
   end
 
   defp ensure_artifacts_dir(%Job{artifacts_path: path}) do
