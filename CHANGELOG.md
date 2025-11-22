@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added data flow diagrams for training and inference paths
 
 ### Changed
-- **mix.exs**: Added `tinkex ~> 0.1.0` as core dependency
+- **mix.exs**: Added `tinkex ~> 0.1.1` as core dependency
 - **Version**: Bumped to 0.2.0 reflecting significant new functionality
 - **Error handling**: Unified structured errors via `Crucible.Error` across all components
 - **Telemetry**: Enhanced instrumentation with experiment context propagation
