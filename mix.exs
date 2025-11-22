@@ -41,7 +41,7 @@ defmodule CrucibleFramework.MixProject do
   defp description do
     """
     CrucibleFramework: A scientific platform for LLM reliability research on the BEAM.
-    This is the meta-package with comprehensive documentation and guides.
+    Provides core library functionality with comprehensive documentation and guides.
     """
   end
 
