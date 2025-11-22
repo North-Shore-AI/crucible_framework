@@ -140,8 +140,8 @@ defmodule Crucible.Harness.TinkexRunner do
                checkpoints: new_checkpoints
            }}
 
-        {:error, _} = error ->
-          emit_stage_error(runner, stage_name, error)
+        {:error, reason} = error ->
+          emit_stage_error(runner, stage_name, reason)
           error
       end
     end
@@ -218,28 +218,33 @@ defmodule Crucible.Harness.TinkexRunner do
   defp run_eval_stage(_runner, config) do
     Logger.info("Running evaluation stage")
 
-    # Get evaluation parameters
-    _test_data = Map.get(config, :test_data, "default_test")
-    metrics = Map.get(config, :metrics, [:accuracy])
+    # Check for forced errors (for testing)
+    if Map.get(config, :force_error) do
+      {:error, "Forced evaluation error for testing"}
+    else
+      # Get evaluation parameters
+      _test_data = Map.get(config, :test_data, "default_test")
+      metrics = Map.get(config, :metrics, [:accuracy])
 
-    # In a real implementation, this would:
-    # 1. Load the test dataset
-    # 2. Run inference on test samples
-    # 3. Compute metrics
+      # In a real implementation, this would:
+      # 1. Load the test dataset
+      # 2. Run inference on test samples
+      # 3. Compute metrics
 
-    # Mock evaluation result
-    result =
-      Enum.reduce(metrics, %{}, fn metric, acc ->
-        Map.put(acc, metric, :rand.uniform())
-      end)
-      |> Map.merge(%{
-        schema_compliance: 0.98,
-        citation_accuracy: 0.96,
-        mean_entailment: 0.55,
-        overall_pass_rate: 0.48
-      })
+      # Mock evaluation result
+      result =
+        Enum.reduce(metrics, %{}, fn metric, acc ->
+          Map.put(acc, metric, :rand.uniform())
+        end)
+        |> Map.merge(%{
+          schema_compliance: 0.98,
+          citation_accuracy: 0.96,
+          mean_entailment: 0.55,
+          overall_pass_rate: 0.48
+        })
 
-    {:ok, result}
+      {:ok, result}
+    end
   end
 
   defp run_analysis_stage(_runner, config) do
@@ -291,14 +296,14 @@ defmodule Crucible.Harness.TinkexRunner do
     )
   end
 
-  defp emit_stage_error(runner, stage_name, error) do
+  defp emit_stage_error(runner, stage_name, reason) do
     :telemetry.execute(
       [:crucible, :harness, :stage_error],
       %{system_time: System.system_time()},
       %{
         stage: stage_name,
         experiment_id: runner.experiment.id,
-        error: error
+        error: reason
       }
     )
   end

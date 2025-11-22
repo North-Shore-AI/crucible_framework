@@ -209,11 +209,28 @@ defmodule Crucible.Tinkex.ArtifactStore do
     if rest_client do
       output_dir = cache_dir()
 
-      case Tinkex.CheckpointDownload.download(rest_client, checkpoint_path,
-             output_dir: output_dir,
-             force: Keyword.get(opts, :force, false),
-             progress: Keyword.get(opts, :progress)
-           ) do
+      download_result =
+        case Code.ensure_loaded(Tinkex.CheckpointDownload) do
+          {:module, _} ->
+            if function_exported?(Tinkex.CheckpointDownload, :download, 3) do
+              apply(Tinkex.CheckpointDownload, :download, [
+                rest_client,
+                checkpoint_path,
+                [
+                  output_dir: output_dir,
+                  force: Keyword.get(opts, :force, false),
+                  progress: Keyword.get(opts, :progress)
+                ]
+              ])
+            else
+              {:error, :download_function_not_available}
+            end
+
+          {:error, _} ->
+            {:error, :tinkex_checkpoint_download_not_available}
+        end
+
+      case download_result do
         {:ok, result} ->
           # Read the downloaded content and store
           local_path = result.destination
