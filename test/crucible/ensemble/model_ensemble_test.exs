@@ -35,71 +35,7 @@ defmodule Crucible.Ensemble.ModelEnsembleTest do
     end
   end
 
-  describe "from_registry/3" do
-    setup do
-      {:ok, registry} = Crucible.Tinkex.ModelRegistry.start_link([])
-
-      # Register test models
-      :ok =
-        Crucible.Tinkex.ModelRegistry.register(registry, "model-1", %{
-          experiment_id: "exp-1",
-          checkpoint_path: "path/1",
-          metrics: %{accuracy: 0.95},
-          tags: [:prod, :fast]
-        })
-
-      :ok =
-        Crucible.Tinkex.ModelRegistry.register(registry, "model-2", %{
-          experiment_id: "exp-2",
-          checkpoint_path: "path/2",
-          metrics: %{accuracy: 0.90},
-          tags: [:prod]
-        })
-
-      :ok =
-        Crucible.Tinkex.ModelRegistry.register(registry, "model-3", %{
-          experiment_id: "exp-3",
-          checkpoint_path: "path/3",
-          metrics: %{accuracy: 0.85},
-          tags: [:dev]
-        })
-
-      %{registry: registry}
-    end
-
-    test "creates ensemble from top N models", %{registry: registry} do
-      {:ok, ensemble} =
-        ModelEnsemble.from_registry(registry, %{
-          sort_by: :accuracy,
-          top_n: 2
-        })
-
-      # Should have 2 adapters from registry
-      clients = AdapterPool.all_clients(ensemble.pool)
-      assert length(clients) == 2
-
-      names = Enum.map(clients, fn {adapter, _} -> adapter.name end)
-      assert "model-1" in names
-      assert "model-2" in names
-    end
-
-    test "filters by tags", %{registry: registry} do
-      {:ok, ensemble} =
-        ModelEnsemble.from_registry(registry, %{
-          sort_by: :accuracy,
-          top_n: 5,
-          tags: [:prod]
-        })
-
-      clients = AdapterPool.all_clients(ensemble.pool)
-      assert length(clients) == 2
-
-      names = Enum.map(clients, fn {adapter, _} -> adapter.name end)
-      assert "model-1" in names
-      assert "model-2" in names
-      refute "model-3" in names
-    end
-  end
+  # from_registry/3 tests removed - ModelRegistry was deleted as part of Tinkex abstraction cleanup
 
   describe "add_model/2" do
     test "adds a model to existing ensemble" do

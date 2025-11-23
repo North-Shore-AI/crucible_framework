@@ -23,7 +23,11 @@ defmodule CrucibleFramework.MixProject do
   defp deps do
     [
       # Core dependency
-      {:tinkex, "~> 0.1.1"},
+      {:tinkex, "~> 0.1.2"},
+
+      # ML/AI - Bumblebee for local inference
+      {:bumblebee, "~> 0.5"},
+      {:exla, "~> 0.7"},
 
       # Testing
       {:supertester, "~> 0.3.1", only: :test},

@@ -95,3 +95,4 @@ mix.exs.old
 artifacts/
 repomix*.xml
 
+runs/

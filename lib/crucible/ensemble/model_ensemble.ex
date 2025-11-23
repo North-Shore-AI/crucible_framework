@@ -28,7 +28,6 @@ defmodule Crucible.Ensemble.ModelEnsemble do
   """
 
   alias Crucible.Ensemble.{AdapterPool, MLVoting}
-  alias Crucible.Tinkex.ModelRegistry
 
   require Logger
 
@@ -84,61 +83,7 @@ defmodule Crucible.Ensemble.ModelEnsemble do
     {:ok, ensemble}
   end
 
-  @doc """
-  Creates an ensemble from models in the registry.
-
-  ## Criteria
-    * `:sort_by` - Metric to sort by (e.g., :accuracy)
-    * `:top_n` - Number of models to include (default: 5)
-    * `:tags` - Required tags for filtering
-
-  ## Options
-    * `:strategy` - Voting strategy
-    * `:execution_mode` - Execution mode
-    * `:session` - Tinkex session for client creation
-  """
-  @spec from_registry(GenServer.server(), map(), keyword()) :: {:ok, t()} | {:error, term()}
-  def from_registry(registry, criteria, opts \\ []) do
-    {:ok, models} = ModelRegistry.find_for_ensemble(registry, criteria)
-
-    if models == [] do
-      {:error, :no_models_found}
-    else
-      # Convert registry models to adapter specs
-      adapters =
-        models
-        |> Enum.with_index()
-        |> Enum.map(fn {model, idx} ->
-          weight = calculate_weight(model, idx, length(models))
-
-          %{
-            name: model.name,
-            checkpoint_path: model.checkpoint_path,
-            weight: weight,
-            tags: model.tags
-          }
-        end)
-
-      # Create adapter pool
-      {:ok, pool} = AdapterPool.start_link([])
-
-      # Add adapters to pool (without starting actual clients for testing)
-      for adapter <- adapters do
-        # In production, this would start actual sampling clients
-        :ok = AdapterPool.add_client(pool, adapter, make_ref())
-      end
-
-      name = "ensemble-#{:erlang.unique_integer([:positive])}"
-
-      create(name,
-        pool: pool,
-        strategy: Keyword.get(opts, :strategy, :weighted),
-        execution_mode: Keyword.get(opts, :execution_mode, :parallel),
-        timeout: Keyword.get(opts, :timeout, 30_000),
-        hedging_config: Keyword.get(opts, :hedging_config)
-      )
-    end
-  end
+  # from_registry/3 removed - ModelRegistry was deleted as part of Tinkex abstraction cleanup
 
   @doc """
   Adds a model to the ensemble.
@@ -263,21 +208,6 @@ defmodule Crucible.Ensemble.ModelEnsemble do
   end
 
   # Private Functions
-
-  defp calculate_weight(model, index, total) do
-    # Weight based on position (top-ranked gets higher weight)
-    # Can be customized based on metrics
-    base_weight = 1.0 / total
-    position_bonus = (total - index) / total * 0.5
-
-    accuracy_bonus =
-      case model.metrics[:accuracy] do
-        nil -> 0
-        acc -> acc * 0.3
-      end
-
-    base_weight + position_bonus + accuracy_bonus
-  end
 
   defp maybe_put_hedging(opts, nil), do: opts
   defp maybe_put_hedging(opts, config), do: Keyword.put_new(opts, :hedging, config)
