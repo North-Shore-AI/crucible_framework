@@ -16,13 +16,24 @@ defmodule Crucible.Backend.Tinkex do
 
   @impl true
   def init(_backend_id, config_opts) when is_map(config_opts) do
-    config = config_opts |> Map.to_list() |> Config.new()
+    env_api_key = System.get_env("TINKER_API_KEY") || Application.get_env(:tinkex, :api_key)
+    env_base_url = System.get_env("TINKER_BASE_URL") || Application.get_env(:tinkex, :base_url)
+
+    config =
+      config_opts
+      |> Map.update(:api_key, env_api_key, fn current -> current || env_api_key end)
+      |> Map.update(:base_url, env_base_url, fn current -> current || env_base_url end)
+      |> Map.to_list()
+      |> Config.new()
 
     {:ok,
      %{
        config: config,
        client_mod: client_mod()
      }}
+  rescue
+    e ->
+      {:error, {:invalid_config, Exception.message(e)}}
   end
 
   @impl true
@@ -34,6 +45,7 @@ defmodule Crucible.Backend.Tinkex do
         :base_model,
         experiment.backend.options[:base_model] || "meta-llama/Llama-3.2-1B"
       )
+      |> Keyword.new()
 
     with {:ok, service} <- client_mod.start_service(config),
          {:ok, training_client} <- client_mod.create_training_client(service, training_opts) do
@@ -54,38 +66,105 @@ defmodule Crucible.Backend.Tinkex do
         %{training_client: training_client, experiment: experiment, client_mod: client_mod},
         batch
       ) do
-    with {:ok, data} <- encode_batch(batch, experiment) do
-      loss_fn = Map.get(experiment.backend.options, :loss_fn, :cross_entropy)
-      timeout = Map.get(experiment.backend.options, :train_timeout, 30_000)
+    with {:ok, data} <- encode_batch(batch, experiment),
+         {:ok, result} <-
+           forward_backward(
+             client_mod,
+             training_client,
+             data,
+             loss_fn(experiment),
+             timeout(experiment)
+           ) do
+      metrics = metrics_from(result)
+      safe_metrics = sanitize_result(result)
 
-      case client_mod.forward_backward(training_client, data, loss_fn, %{}) do
-        {:ok, %{} = result} ->
-          {:ok,
-           %{
-             loss: Map.get(result, :total_loss, 0.0),
-             batch_size: Map.get(result, :num_examples, length(batch)),
-             metrics: result
-           }}
-
-        {:ok, %Task{} = task} ->
-          case Task.await(task, timeout) do
-            {:ok, result} ->
-              {:ok,
-               %{
-                 loss: Map.get(result, :total_loss, 0.0),
-                 batch_size: Map.get(result, :num_examples, length(batch)),
-                 metrics: result
-               }}
-
-            {:error, reason} ->
-              {:error, reason}
-          end
-
-        {:error, reason} ->
-          {:error, reason}
-      end
+      {:ok,
+       %{
+         loss: loss_from(result, metrics),
+         batch_size: batch_size(result, batch),
+         metrics: safe_metrics
+       }}
     end
   end
+
+  defp loss_fn(experiment), do: Map.get(experiment.backend.options, :loss_fn, :cross_entropy)
+
+  defp timeout(experiment), do: Map.get(experiment.backend.options, :train_timeout, 30_000)
+
+  defp forward_backward(client_mod, training_client, data, loss_fn, timeout) do
+    case client_mod.forward_backward(training_client, data, loss_fn, []) do
+      {:ok, %Task{} = task} ->
+        case Task.await(task, timeout) do
+          {:ok, result} -> {:ok, result}
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:ok, %{} = result} ->
+        {:ok, result}
+
+      {:error, reason} ->
+        {:error, reason}
+
+      other ->
+        {:error, {:unexpected_forward_backward_result, other}}
+    end
+  rescue
+    e ->
+      {:error, {:forward_backward_failed, Exception.message(e)}}
+  end
+
+  defp loss_from(result, metrics) do
+    cond do
+      is_map(metrics) && Map.get(metrics, "loss") -> Map.get(metrics, "loss")
+      is_map(metrics) && Map.get(metrics, :loss) -> Map.get(metrics, :loss)
+      Map.get(result, :total_loss) -> Map.get(result, :total_loss)
+      Map.get(result, "total_loss") -> Map.get(result, "total_loss")
+      true -> 0.0
+    end
+  end
+
+  defp batch_size(result, batch) do
+    Map.get(result, :num_examples) || Map.get(result, "num_examples") || length(batch)
+  end
+
+  defp metrics_from(%{} = result) do
+    cond do
+      Map.has_key?(result, :metrics) -> Map.get(result, :metrics) || %{}
+      Map.has_key?(result, "metrics") -> Map.get(result, "metrics") || %{}
+      true -> %{}
+    end
+  end
+
+  defp metrics_from(_), do: %{}
+
+  defp sanitize_result(%_{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> sanitize_result()
+  end
+
+  defp sanitize_result(map) when is_map(map) do
+    map
+    |> Enum.map(fn {k, v} -> {sanitize_key(k), sanitize_result(v)} end)
+    |> Enum.into(%{})
+  end
+
+  defp sanitize_result(list) when is_list(list), do: Enum.map(list, &sanitize_result/1)
+
+  defp sanitize_result(tuple) when is_tuple(tuple) do
+    tuple
+    |> Tuple.to_list()
+    |> sanitize_result()
+  end
+
+  defp sanitize_result(value)
+       when is_pid(value) or is_reference(value) or is_function(value) or is_port(value),
+       do: inspect(value)
+
+  defp sanitize_result(value), do: value
+
+  defp sanitize_key(key) when is_atom(key), do: Atom.to_string(key)
+  defp sanitize_key(key), do: key
 
   @impl true
   def save_checkpoint(%{training_client: training_client, client_mod: client_mod}, _step) do

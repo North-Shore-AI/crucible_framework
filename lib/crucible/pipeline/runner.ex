@@ -72,7 +72,7 @@ defmodule Crucible.Pipeline.Runner do
     Persistence.finish_run(run_record, "completed", %{
       metrics: ctx.metrics,
       outputs: ctx.outputs,
-      metadata: Map.put(run_record.metadata, "assigns", ctx.assigns)
+      metadata: Map.put(run_record.metadata || %{}, "assigns", ctx.assigns)
     })
 
     {:ok, ctx}
@@ -81,9 +81,11 @@ defmodule Crucible.Pipeline.Runner do
   defp finalize({:error, {stage, reason}, ctx}, nil), do: {:error, {stage, reason, ctx}}
 
   defp finalize({:error, {stage, reason}, ctx}, run_record) do
+    failure = %{"stage" => to_string(stage), "reason" => inspect(reason)}
+
     Persistence.finish_run(run_record, "failed", %{
       metrics: ctx.metrics,
-      metadata: Map.merge(run_record.metadata || %{}, %{"failure" => {stage, inspect(reason)}})
+      metadata: Map.merge(run_record.metadata || %{}, %{"failure" => failure})
     })
 
     {:error, {stage, reason, ctx}}

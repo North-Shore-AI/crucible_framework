@@ -15,6 +15,13 @@ Ensure TINKER_API_KEY is exported and PostgreSQL is reachable (see config/dev.ex
 This demo uses a tiny slice of the SciFact claim extractor dataset.
 """)
 
+IO.inspect(
+  {System.get_env("TINKER_API_KEY"), Application.get_env(:tinkex, :api_key)},
+  label: "envs"
+)
+
+api_key = System.get_env("TINKER_API_KEY") || Application.get_env(:tinkex, :api_key)
+
 experiment =
   %Experiment{
     id: "tinkex_scifact_demo",
@@ -50,7 +57,8 @@ experiment =
       profile: :lora_finetune,
       options: %{
         base_model: System.get_env("TINKER_BASE_MODEL", "meta-llama/Llama-3.2-1B"),
-        train_timeout: 120_000
+        train_timeout: 120_000,
+        api_key: api_key
       }
     },
     reliability: %ReliabilityConfig{

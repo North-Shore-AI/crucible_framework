@@ -73,13 +73,17 @@ defmodule Crucible.Stage.DataLoad do
 
         Enum.map(examples, fn example ->
           %{
-            input: Map.get(example, input_key),
-            output: Map.get(example, output_key)
+            input: fetch(example, input_key),
+            output: fetch(example, output_key)
           }
         end)
 
       _ ->
         examples
     end
+  end
+
+  defp fetch(example, key) do
+    Map.get(example, key) || Map.get(example, to_string(key))
   end
 end

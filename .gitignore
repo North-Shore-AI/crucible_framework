@@ -63,6 +63,7 @@ Desktop.ini
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
 priv/plts/
+priv/data/
 
 # Language Server Protocol
 .lexical/

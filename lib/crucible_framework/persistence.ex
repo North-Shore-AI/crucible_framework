@@ -55,9 +55,9 @@ defmodule CrucibleFramework.Persistence do
   @spec finish_run(RunRecord.t(), String.t(), map()) ::
           {:ok, RunRecord.t()} | {:error, Ecto.Changeset.t()}
   def finish_run(%RunRecord{} = run, status, attrs \\ %{}) do
-    metrics = attrs |> Map.get(:metrics, run.metrics) |> stringify_keys()
-    outputs = attrs |> Map.get(:outputs, run.outputs)
-    metadata = attrs |> Map.get(:metadata, run.metadata) |> stringify_keys()
+    metrics = attrs |> Map.get(:metrics, run.metrics) |> sanitize() |> stringify_keys()
+    outputs = attrs |> Map.get(:outputs, run.outputs) |> sanitize()
+    metadata = attrs |> Map.get(:metadata, run.metadata) |> sanitize() |> stringify_keys()
 
     run
     |> RunRecord.changeset(%{
@@ -92,4 +92,33 @@ defmodule CrucibleFramework.Persistence do
   end
 
   defp stringify_keys(other), do: other
+
+  defp sanitize(%_{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> sanitize()
+  end
+
+  defp sanitize(map) when is_map(map) do
+    map
+    |> Enum.map(fn {k, v} -> {sanitize_key(k), sanitize(v)} end)
+    |> Enum.into(%{})
+  end
+
+  defp sanitize(list) when is_list(list), do: Enum.map(list, &sanitize/1)
+
+  defp sanitize(tuple) when is_tuple(tuple) do
+    tuple
+    |> Tuple.to_list()
+    |> sanitize()
+  end
+
+  defp sanitize(value)
+       when is_pid(value) or is_reference(value) or is_function(value) or is_port(value),
+       do: inspect(value)
+
+  defp sanitize(value), do: value
+
+  defp sanitize_key(key) when is_atom(key), do: Atom.to_string(key)
+  defp sanitize_key(key), do: key
 end
