@@ -320,7 +320,12 @@ defmodule Crucible.Ensemble.MLVoting do
   defp compute_confidence_from_logprobs(_), do: 0.5
 
   defp get_sampling_params(opts) do
-    Crucible.Thinker.Utils.sampling_params(opts)
+    %{
+      temperature: Keyword.get(opts, :temperature, 0.7),
+      top_p: Keyword.get(opts, :top_p, 0.95),
+      max_tokens: Keyword.get(opts, :max_tokens, 512),
+      stop_sequences: Keyword.get(opts, :stop_sequences, [])
+    }
   end
 
   defp do_generate(client, prompt, params) do
