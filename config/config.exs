@@ -10,14 +10,17 @@ config :crucible_framework,
     data_load: Crucible.Stage.DataLoad,
     data_checks: Crucible.Stage.DataChecks,
     guardrails: Crucible.Stage.Guardrails,
-    backend_call: Crucible.Stage.BackendCallExtended,
+    backend_call: Crucible.Stage.BackendCall,
+    cns_surrogate_validation: Crucible.Stage.CNSSurrogateValidation,
+    cns_tda_validation: Crucible.Stage.CNSTDAValidation,
     cns_metrics: Crucible.Stage.CNSMetrics,
     bench: Crucible.Stage.Bench,
     report: Crucible.Stage.Report
   },
-  # CNS Adapter: Use CNS.CrucibleAdapter for full CNS evaluation
-  # or Crucible.CNS.Noop to skip CNS metrics
-  cns_adapter: CNS.CrucibleAdapter,
+  # CNS Adapters: default to no-ops; override in integration apps (e.g., cns_experiments)
+  cns_adapter: Crucible.CNS.Noop,
+  cns_surrogate_adapter: Crucible.CNS.SurrogateNoop,
+  cns_tda_adapter: Crucible.CNS.TDANoop,
   guardrail_adapter: Crucible.Stage.Guardrails.Noop,
   tinkex_client: Crucible.Backend.Tinkex.LiveClient
 

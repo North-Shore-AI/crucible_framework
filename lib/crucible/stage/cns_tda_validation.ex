@@ -1,16 +1,16 @@
-defmodule Crucible.Stage.CNSSurrogateValidation do
+defmodule Crucible.Stage.CNSTDAValidation do
   @moduledoc """
-  Runs CNS surrogate topology validation via a configured adapter.
+  Runs topological data analysis (TDA) on CNS reasoning structures via a configured adapter.
 
   Results are attached to:
-    * `context.assigns[:cns_surrogates]` - per-SNO surrogate metrics
-    * `context.metrics[:cns_surrogates]` - aggregate summary
+    * `context.assigns[:cns_tda_results]` - per-SNO metrics
+    * `context.metrics[:cns_tda]` - aggregate summary
   """
 
   @behaviour Crucible.Stage
 
   alias Crucible.Context
-  alias Crucible.CNS.SurrogateNoop
+  alias Crucible.CNS.TDANoop
 
   @impl true
   def run(%Context{} = ctx, opts) do
@@ -19,30 +19,30 @@ defmodule Crucible.Stage.CNSSurrogateValidation do
     examples = ctx.examples || []
     outputs = ctx.outputs || []
 
-    case adapter.compute_surrogates(examples, outputs, opts) do
+    case adapter.compute_tda(examples, outputs, opts) do
       {:ok, %{results: results, summary: summary} = payload} ->
         new_assigns =
           (ctx.assigns || %{})
-          |> Map.put(:cns_surrogates, results)
-          |> Map.put(:cns_surrogates_raw, payload)
+          |> Map.put(:cns_tda_results, results)
+          |> Map.put(:cns_tda_raw, payload)
 
         new_metrics =
           (ctx.metrics || %{})
-          |> Map.put(:cns_surrogates, summary)
+          |> Map.put(:cns_tda, summary)
 
         {:ok, %Context{ctx | assigns: new_assigns, metrics: new_metrics}}
 
       {:error, reason} ->
-        {:error, {:cns_surrogates_failed, reason}}
+        {:error, {:cns_tda_failed, reason}}
     end
   end
 
   @impl true
   def describe(opts) do
     %{
-      stage: "CNSSurrogateValidation",
-      description: "Compute CNS surrogate metrics via adapter",
-      adapter: opts[:adapter] || Application.get_env(:crucible_framework, :cns_surrogate_adapter)
+      stage: "CNSTDAValidation",
+      description: "Compute CNS TDA metrics via adapter",
+      adapter: opts[:adapter] || Application.get_env(:crucible_framework, :cns_tda_adapter)
     }
   end
 
@@ -54,7 +54,7 @@ defmodule Crucible.Stage.CNSSurrogateValidation do
         _ -> nil
       end
 
-    mod || Application.get_env(:crucible_framework, :cns_surrogate_adapter, SurrogateNoop)
+    mod || Application.get_env(:crucible_framework, :cns_tda_adapter, TDANoop)
   end
 
   defp normalize_opts(nil), do: %{}

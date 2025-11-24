@@ -15,7 +15,7 @@
 ## What’s New (v0.3.0 · 2025-11-23)
 
 - Declarative Experiment IR (`Crucible.IR.*`) that fully describes datasets, stages, backends, and outputs.
-- Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages: data_load → data_checks → guardrails → backend_call → cns_metrics → bench → report.
+- Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages: data_load → data_checks → guardrails → backend_call → cns_surrogate_validation → cns_tda_validation → cns_metrics → bench → report.
 - Backend behaviour plus a mockable Tinkex implementation for LoRA training and sampling.
 - Persistence layer (Ecto/Postgres) for experiments, runs, and artifacts; one-step bootstrap script (`scripts/setup_db.sh`).
 - Live Tinkex demo pipeline (`examples/tinkex_live.exs`) wired to the new IR and stages.
@@ -116,7 +116,7 @@ experiment = %Experiment{
 
 ### Safety & Evaluation Adapters
 - Guardrails: plug your adapter via `config :crucible_framework, :guardrail_adapter, YourModule` (default no-op).
-- CNS: plug your adapter via `config :crucible_framework, :cns_adapter, YourModule` (default no-op).
+- CNS: plug adapters via `config :crucible_framework, :cns_adapter / :cns_surrogate_adapter / :cns_tda_adapter, YourModule` (defaults are no-ops).
 
 ---
 
