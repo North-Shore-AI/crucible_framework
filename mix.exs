@@ -35,11 +35,22 @@ defmodule CrucibleFramework.MixProject do
 
   defp deps do
     [
+      # Component Libraries
+      {:crucible_ensemble, path: "../crucible_ensemble"},
+      {:crucible_hedging, path: "../crucible_hedging"},
+      {:crucible_bench, path: "../crucible_bench"},
+      {:crucible_trace, path: "../crucible_trace"},
+
+      # Backend Integration
       {:tinkex, "~> 0.1.2"},
+
+      # Core Dependencies
       {:ecto_sql, "~> 3.11"},
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.2"},
+
+      # Development and Testing
       {:mox, "~> 1.1", only: :test},
       {:stream_data, "~> 1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},

@@ -73,6 +73,7 @@ defmodule Crucible.Backend.Tinkex do
              training_client,
              data,
              loss_fn(experiment),
+             loss_opts(experiment),
              timeout(experiment)
            ) do
       metrics = metrics_from(result)
@@ -88,11 +89,12 @@ defmodule Crucible.Backend.Tinkex do
   end
 
   defp loss_fn(experiment), do: Map.get(experiment.backend.options, :loss_fn, :cross_entropy)
+  defp loss_opts(experiment), do: Map.get(experiment.backend.options, :loss_opts, %{})
 
   defp timeout(experiment), do: Map.get(experiment.backend.options, :train_timeout, 30_000)
 
-  defp forward_backward(client_mod, training_client, data, loss_fn, timeout) do
-    case client_mod.forward_backward(training_client, data, loss_fn, []) do
+  defp forward_backward(client_mod, training_client, data, loss_fn, loss_opts, timeout) do
+    case client_mod.forward_backward(training_client, data, loss_fn, loss_opts) do
       {:ok, %Task{} = task} ->
         case Task.await(task, timeout) do
           {:ok, result} -> {:ok, result}

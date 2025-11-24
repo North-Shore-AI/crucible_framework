@@ -3,7 +3,7 @@ defmodule Crucible.Pipeline.Runner do
   Executes experiment pipelines stage-by-stage.
   """
 
-  alias Crucible.{Context, Registry}
+  alias Crucible.{Context, Registry, TraceIntegration}
   alias Crucible.IR.{Experiment, StageDef}
   alias CrucibleFramework.Persistence
 
@@ -34,12 +34,26 @@ defmodule Crucible.Pipeline.Runner do
           {:ok, mod} ->
             log_stage(stage_def.name)
 
+            # Emit trace event for stage start
+            ctx_acc =
+              TraceIntegration.emit_stage_start(ctx_acc, stage_def.name, stage_def.options)
+
             case mod.run(ctx_acc, stage_def.options) do
-              {:ok, new_ctx} -> {:cont, {:ok, new_ctx}}
-              {:error, reason} -> {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
+              {:ok, new_ctx} ->
+                # Emit trace event for stage completion
+                new_ctx =
+                  TraceIntegration.emit_stage_complete(new_ctx, stage_def.name, new_ctx.metrics)
+
+                {:cont, {:ok, new_ctx}}
+
+              {:error, reason} ->
+                # Emit trace event for stage failure
+                ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
+                {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
             end
 
           {:error, reason} ->
+            ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
             {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
         end
       end)
@@ -48,12 +62,19 @@ defmodule Crucible.Pipeline.Runner do
   end
 
   defp build_context(experiment, run_id, opts) do
-    %Context{
+    ctx = %Context{
       experiment_id: experiment.id,
       run_id: run_id,
       experiment: experiment,
       assigns: Keyword.get(opts, :assigns, %{})
     }
+
+    # Initialize tracing if enabled
+    if Keyword.get(opts, :enable_trace, false) do
+      TraceIntegration.init_trace(ctx, experiment.id)
+    else
+      ctx
+    end
   end
 
   defp resolve_stage(%StageDef{module: nil, name: name}) do
