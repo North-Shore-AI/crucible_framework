@@ -1,6 +1,12 @@
-ExUnit.start(capture_log: true, exclude: [:slow])
+ExUnit.start(exclude: [:integration])
 
-Logger.configure(level: :warning)
+{:ok, _} = Application.ensure_all_started(:crucible_framework)
 
-# Start the telemetry registry for tests
-{:ok, _} = Registry.start_link(keys: :unique, name: Crucible.Telemetry.Registry)
+if Application.get_env(:crucible_framework, :enable_repo, false) do
+  Ecto.Adapters.SQL.Sandbox.mode(CrucibleFramework.Repo, :manual)
+end
+
+Mox.defmock(Crucible.BackendMock, for: Crucible.Backend)
+Mox.defmock(Crucible.GuardrailMock, for: Crucible.Stage.Guardrails.Adapter)
+Mox.defmock(Crucible.CNSMock, for: Crucible.CNS.Adapter)
+Mox.defmock(Crucible.Backend.Tinkex.ClientMock, for: Crucible.Backend.Tinkex.Client)

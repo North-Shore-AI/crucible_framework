@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.3.0"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -9,7 +9,10 @@ defmodule CrucibleFramework.MixProject do
       app: :crucible_framework,
       version: @version,
       elixir: "~> 1.14",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      start_permanent: Mix.env() == :prod,
       preferred_cli_env: [dialyzer: :dev],
+      aliases: aliases(),
       deps: deps(),
       docs: docs(),
       description: description(),
@@ -20,24 +23,26 @@ defmodule CrucibleFramework.MixProject do
     ]
   end
 
+  def application do
+    [
+      mod: {CrucibleFramework.Application, []},
+      extra_applications: [:logger, :crypto, :telemetry, :runtime_tools]
+    ]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
   defp deps do
     [
-      # Core dependency
       {:tinkex, "~> 0.1.2"},
-
-      # ML/AI - Bumblebee for local inference
-      {:bumblebee, "~> 0.5"},
-      {:exla, "~> 0.7"},
-
-      # Testing
-      {:supertester, "~> 0.3.1", only: :test},
+      {:ecto_sql, "~> 3.11"},
+      {:postgrex, ">= 0.0.0"},
+      {:jason, "~> 1.4"},
+      {:telemetry, "~> 1.2"},
       {:mox, "~> 1.1", only: :test},
       {:stream_data, "~> 1.0", only: [:dev, :test]},
-
-      # Documentation
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
-
-      # Static analysis
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
     ]
   end
@@ -184,6 +189,15 @@ defmodule CrucibleFramework.MixProject do
         "Component Libraries" => "https://github.com/North-Shore-AI"
       },
       maintainers: ["nshkrdotcom"]
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "ecto.setup"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["test"]
     ]
   end
 end
