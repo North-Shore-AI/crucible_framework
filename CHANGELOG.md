@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-23
+
+### Changed
+- Introduced a declarative Experiment IR (`Crucible.IR.*`) with serializable structs for datasets, stages, backends, and outputs.
+- Replaced legacy harness/runner with a stage-based pipeline engine (`Crucible.Pipeline.Runner`) and core stages for data loading, checks, guardrails, backend calls, CNS metrics, bench hooks, and reporting.
+- Added `Crucible.Backend` behaviour and a mockable Tinkex backend implementation that delegates to the `tinkex` SDK via swappable clients.
+- Added an Ecto/Postgres persistence layer (experiments, runs, artifacts) plus a turnkey bootstrap script `scripts/setup_db.sh`.
+- Added `examples/tinkex_live.exs` as a live, end-to-end demo using the new pipeline and IR.
+
 ## [0.2.1] - 2025-11-21
 
 ### Fixed

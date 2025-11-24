@@ -15,8 +15,8 @@ defmodule Crucible.Backend.Tinkex do
   alias Tinkex.Types.{Datum, ModelInput, TensorData}
 
   @impl true
-  def init(_backend_id, config_opts) do
-    config = Config.new(config_opts)
+  def init(_backend_id, config_opts) when is_map(config_opts) do
+    config = config_opts |> Map.to_list() |> Config.new()
 
     {:ok,
      %{

@@ -6,6 +6,16 @@ defmodule CrucibleFramework.Persistence.ExperimentRecord do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          id: String.t(),
+          definition: map(),
+          owner: String.t() | nil,
+          tags: [String.t()],
+          metadata: map(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @primary_key {:id, :string, autogenerate: false}
   schema "experiments" do
     field(:definition, :map)

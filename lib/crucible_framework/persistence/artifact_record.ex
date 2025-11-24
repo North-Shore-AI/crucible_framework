@@ -8,6 +8,19 @@ defmodule CrucibleFramework.Persistence.ArtifactRecord do
 
   alias CrucibleFramework.Persistence.RunRecord
 
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t(),
+          run_id: Ecto.UUID.t(),
+          run: RunRecord.t() | Ecto.Association.NotLoaded.t(),
+          name: String.t() | nil,
+          type: String.t() | nil,
+          location: String.t() | nil,
+          format: String.t() | nil,
+          metadata: map(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "artifacts" do
     belongs_to(:run, RunRecord, type: :binary_id)

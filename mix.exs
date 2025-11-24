@@ -87,6 +87,7 @@ defmodule CrucibleFramework.MixProject do
       "FAQ.md",
       "PUBLICATIONS.md",
       "CHANGELOG.md",
+      "LICENSE",
       "docs/tinkex_integration/00_architecture_overview.md",
       "docs/tinkex_integration/01_tinkex_adapter.md",
       "docs/tinkex_integration/02_lora_training_interface.md",

@@ -8,6 +8,19 @@ defmodule CrucibleFramework.Persistence.RunRecord do
 
   alias CrucibleFramework.Persistence.ExperimentRecord
 
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t(),
+          experiment_id: String.t(),
+          experiment: ExperimentRecord.t() | Ecto.Association.NotLoaded.t(),
+          status: String.t(),
+          context: map(),
+          metrics: map(),
+          outputs: map(),
+          metadata: map(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "runs" do
     belongs_to(:experiment, ExperimentRecord, references: :id, type: :string)
