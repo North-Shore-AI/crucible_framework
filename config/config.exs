@@ -14,6 +14,8 @@ config :crucible_framework,
     cns_surrogate_validation: Crucible.Stage.CNSSurrogateValidation,
     cns_tda_validation: Crucible.Stage.CNSTDAValidation,
     cns_metrics: Crucible.Stage.CNSMetrics,
+    cns_filter: Crucible.Stage.CNSFilter,
+    fairness: Crucible.Stage.Fairness,
     bench: Crucible.Stage.Bench,
     report: Crucible.Stage.Report
   },
@@ -21,6 +23,8 @@ config :crucible_framework,
   cns_adapter: Crucible.CNS.Noop,
   cns_surrogate_adapter: Crucible.CNS.SurrogateNoop,
   cns_tda_adapter: Crucible.CNS.TDANoop,
+  # Fairness Adapter: default to noop; override with ExFairnessAdapter when ExFairness is available
+  fairness_adapter: Crucible.Fairness.Noop,
   guardrail_adapter: Crucible.Stage.Guardrails.Noop,
   tinkex_client: Crucible.Backend.Tinkex.LiveClient
 

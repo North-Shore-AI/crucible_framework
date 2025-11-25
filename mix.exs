@@ -41,6 +41,9 @@ defmodule CrucibleFramework.MixProject do
       {:crucible_bench, path: "../crucible_bench"},
       {:crucible_trace, path: "../crucible_trace"},
 
+      # Domain Libraries (optional - for full feature set)
+      {:ex_fairness, path: "../ExFairness", optional: true},
+
       # Backend Integration
       {:tinkex, "~> 0.1.2"},
 
@@ -49,6 +52,7 @@ defmodule CrucibleFramework.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.2"},
+      {:nx, "~> 0.7"},
 
       # Development and Testing
       {:mox, "~> 1.1", only: :test},
