@@ -1,7 +1,7 @@
-defmodule Crucible.CNS.SurrogateNoop do
+defmodule Crucible.Analysis.SurrogateNoop do
   @moduledoc "Default no-op surrogate adapter."
 
-  @behaviour Crucible.CNS.SurrogateAdapter
+  @behaviour Crucible.Analysis.SurrogateAdapter
 
   @impl true
   def compute_surrogates(_examples, _outputs, _opts) do

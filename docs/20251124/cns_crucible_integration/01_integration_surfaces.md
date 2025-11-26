@@ -28,8 +28,8 @@
 
 ## Integration points (today)
 
-- Metrics: `Crucible.Stage.CNSMetrics` → configured `Crucible.CNS.Adapter.evaluate/3`.
-- Surrogates: `Crucible.Stage.CNSSurrogateValidation` (+ optional `CNSFilter`).
+- Metrics: `Crucible.Stage.Analysis.Metrics` → configured `Crucible.Analysis.Adapter.evaluate/3`.
+- Surrogates: `Crucible.Stage.Analysis.SurrogateValidation` (+ optional `Analysis.Filter`).
 - Backend: `Crucible.Stage.BackendCall` → `Crucible.Backend.Tinkex` (or others).
 - Reliability: ensemble + hedging inside `BackendCall`; stats via `Stage.Bench`; trace via `TraceIntegration`.
 
@@ -37,11 +37,11 @@
 
 - Add to config (consumer app):
   - `config :crucible_framework,
-    cns_adapter: YourMetricsAdapter,
-    cns_surrogate_adapter: YourSurrogateAdapter,
-    cns_tda_adapter: YourTDAAdapter,
+    analysis_adapter: YourMetricsAdapter,
+    analysis_surrogate_adapter: YourSurrogateAdapter,
+    analysis_tda_adapter: YourTDAAdapter,
     enable_repo: false`
 - Build `Crucible.IR.Experiment` with stages:
-  - `:data_load -> :data_checks -> :guardrails -> :backend_call -> :cns_surrogate_validation -> :cns_tda_validation -> :cns_metrics -> :bench -> :report`
+  - `:data_load -> :data_checks -> :guardrails -> :backend_call -> :analysis_surrogate_validation -> :analysis_tda_validation -> :analysis_metrics -> :bench -> :report`
 - Backend ref: `%BackendRef{id: :tinkex, profile: :lora_finetune, options: %{...}}`
 - Dataset ref: local JSONL with `input_key: :prompt`, `output_key: :completion`.

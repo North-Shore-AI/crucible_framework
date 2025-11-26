@@ -1,15 +1,17 @@
-defmodule Crucible.CNS.TDAAdapter do
+defmodule Crucible.Analysis.TDAAdapter do
   @moduledoc """
-  Behaviour for plugging CNS-style topological data analysis into Crucible.
+  Behaviour for plugging topological data analysis into Crucible.
 
-  Implementations live in higher-level apps (e.g., `cns_crucible`) and are
-  responsible for turning experiment examples/outputs into SNOs and computing
-  persistent homology metrics.
+  Implementations live in integration apps (e.g., `cns_crucible`) and are
+  responsible for turning experiment examples/outputs into structures suitable
+  for persistent homology and related metrics.
   """
 
   @type sno_id :: String.t()
   @type barcode :: %{birth: float(), death: float(), persistence: float()}
   @type beta_index :: non_neg_integer()
+
+  @type result_status :: :completed | :skipped
 
   @type tda_result :: %{
           sno_id: sno_id(),
@@ -33,6 +35,13 @@ defmodule Crucible.CNS.TDAAdapter do
           n_snos: non_neg_integer()
         }
 
+  @type tda_payload :: %{
+          required(:results) => [tda_result()],
+          required(:summary) => summary(),
+          optional(:status) => result_status(),
+          optional(:message) => String.t()
+        }
+
   @callback compute_tda(examples :: [map()], outputs :: [map()], opts :: map()) ::
-              {:ok, %{results: [tda_result()], summary: summary()}} | {:error, term()}
+              {:ok, tda_payload()} | {:error, term()}
 end

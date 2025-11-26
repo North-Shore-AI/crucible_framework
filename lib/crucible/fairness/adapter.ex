@@ -58,6 +58,8 @@ defmodule Crucible.Fairness.Adapter do
           optional(:error) => term()
         }
 
+  @type evaluation_status :: :completed | :skipped
+
   @type evaluation_result :: %{
           required(:metrics) => %{atom() => metric_result()},
           required(:overall_passes) => boolean(),
@@ -65,7 +67,9 @@ defmodule Crucible.Fairness.Adapter do
           required(:failed_count) => non_neg_integer(),
           required(:total_count) => non_neg_integer(),
           optional(:violations) => [map()],
-          optional(:report) => String.t()
+          optional(:report) => String.t(),
+          optional(:status) => evaluation_status(),
+          optional(:message) => String.t()
         }
 
   @doc """

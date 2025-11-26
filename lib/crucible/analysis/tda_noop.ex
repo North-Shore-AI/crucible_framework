@@ -1,9 +1,9 @@
-defmodule Crucible.CNS.TDANoop do
+defmodule Crucible.Analysis.TDANoop do
   @moduledoc """
-  Default no-op TDA adapter. Used when no CNS TDA integration is configured.
+  Default no-op TDA adapter. Used when no analysis/TDA integration is configured.
   """
 
-  @behaviour Crucible.CNS.TDAAdapter
+  @behaviour Crucible.Analysis.TDAAdapter
 
   @impl true
   def compute_tda(_examples, _outputs, _opts) do

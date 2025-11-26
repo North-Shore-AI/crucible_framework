@@ -14,7 +14,7 @@
             | Adapter behaviours |
             +--------+-------+
                      |
-                     |  (via config :cns_adapter)
+                     |  (via config :analysis_adapter)
                      v
             +-----------------------+
             |  crucible_framework   |
@@ -23,9 +23,9 @@
             | Context/Runner        |
             | Stages:               |
             |  - BackendCall        |
-            |  - CNSMetrics         |
-            |  - CNSSurrogateVal    |
-            |  - CNSTDAValidation   |
+            |  - AnalysisMetrics    |
+            |  - AnalysisSurrogate  |
+            |  - AnalysisTDA        |
             |  - Bench, Report      |
             | TraceIntegration      |
             +----+----+----+-------+

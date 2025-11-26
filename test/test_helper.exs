@@ -8,5 +8,5 @@ end
 
 Mox.defmock(Crucible.BackendMock, for: Crucible.Backend)
 Mox.defmock(Crucible.GuardrailMock, for: Crucible.Stage.Guardrails.Adapter)
-Mox.defmock(Crucible.CNSMock, for: Crucible.CNS.Adapter)
+Mox.defmock(Crucible.AnalysisMock, for: Crucible.Analysis.Adapter)
 Mox.defmock(Crucible.Backend.Tinkex.ClientMock, for: Crucible.Backend.Tinkex.Client)

@@ -1,9 +1,13 @@
-defmodule Crucible.CNS.SurrogateAdapter do
+defmodule Crucible.Analysis.SurrogateAdapter do
   @moduledoc """
-  Behaviour for CNS surrogate topology computation (β₁ surrogates, fragility, etc.).
+  Behaviour for surrogate topology/logic computation (β₁ surrogates, fragility, etc.).
+
+  Integration apps (e.g., CNS) implement this and wire it into the framework.
   """
 
   @type sno_id :: String.t()
+
+  @type result_status :: :completed | :skipped
 
   @type surrogate_result :: %{
           sno_id: sno_id(),
@@ -21,6 +25,13 @@ defmodule Crucible.CNS.SurrogateAdapter do
           n_snos: non_neg_integer()
         }
 
+  @type surrogate_payload :: %{
+          required(:results) => [surrogate_result()],
+          required(:summary) => summary(),
+          optional(:status) => result_status(),
+          optional(:message) => String.t()
+        }
+
   @callback compute_surrogates(examples :: [map()], outputs :: [map()], opts :: map()) ::
-              {:ok, %{results: [surrogate_result()], summary: summary()}} | {:error, term()}
+              {:ok, surrogate_payload()} | {:error, term()}
 end

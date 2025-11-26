@@ -17,12 +17,12 @@
 
 3) **Config**
    - Disable repo if no DB: `config :crucible_framework, :enable_repo, false`
-   - Set CNS adapters in the host app: `config :crucible_framework, :cns_adapter, YourMetricsAdapter; :cns_surrogate_adapter, YourSurrogateAdapter; :cns_tda_adapter, YourTDAAdapter`
+   - Set analysis adapters in the host app: `config :crucible_framework, :analysis_adapter, YourMetricsAdapter; :analysis_surrogate_adapter, YourSurrogateAdapter; :analysis_tda_adapter, YourTDAAdapter`
    - Provide Tinkex creds: `TINKER_API_KEY`, `TINKER_BASE_URL`
 
 4) **Data + pipeline**
    - Dataset: JSONL with `input_key: :prompt`, `output_key: :completion`, or a loader stage.
-   - Pipeline: `[:data_load, :data_checks, :guardrails, :backend_call, :cns_surrogate_validation, :cns_tda_validation, :cns_metrics, :bench, :report]`
+   - Pipeline: `[:data_load, :data_checks, :guardrails, :backend_call, :analysis_surrogate_validation, :analysis_tda_validation, :analysis_metrics, :bench, :report]`
    - Backend: `%BackendRef{id: :tinkex, profile: :lora_finetune, options: %{base_model: "...", lora_rank: ..., learning_rate: ...}}`
 
 5) **Tests**

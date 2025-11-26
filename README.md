@@ -154,9 +154,9 @@ experiment = %Experiment{
     %StageDef{name: :data_checks, options: %{required_fields: [:input, :output]}},
     %StageDef{name: :guardrails},
     %StageDef{name: :backend_call, options: %{mode: :train}},
-    %StageDef{name: :cns_surrogate_validation},
-    %StageDef{name: :cns_tda_validation},
-    %StageDef{name: :cns_metrics},
+    %StageDef{name: :analysis_surrogate_validation},
+    %StageDef{name: :analysis_tda_validation},
+    %StageDef{name: :analysis_metrics},
     %StageDef{name: :bench},
     %StageDef{name: :report}
   ],
@@ -195,10 +195,10 @@ The pipeline is executed by `Crucible.Pipeline.Runner`, which iterates through s
 | `:data_checks` | `Crucible.Stage.DataChecks` | Schema validation |
 | `:guardrails` | `Crucible.Stage.Guardrails` | Safety scanning (LlmGuard integration) |
 | `:backend_call` | `Crucible.Stage.BackendCall` | Training/sampling via backend |
-| `:cns_surrogate_validation` | `Crucible.Stage.CNSSurrogateValidation` | CNS surrogate topology checks |
-| `:cns_tda_validation` | `Crucible.Stage.CNSTdaValidation` | CNS full TDA analysis |
-| `:cns_metrics` | `Crucible.Stage.CNSMetrics` | CNS quality metrics |
-| `:cns_filter` | `Crucible.Stage.CNSFilter` | Filter SNOs by surrogate scores |
+| `:analysis_surrogate_validation` | `Crucible.Stage.Analysis.SurrogateValidation` | Surrogate topology checks (wired by integration app) |
+| `:analysis_tda_validation` | `Crucible.Stage.Analysis.TDAValidation` | Full TDA analysis (wired by integration app) |
+| `:analysis_metrics` | `Crucible.Stage.Analysis.Metrics` | Quality metrics (wired by integration app) |
+| `:analysis_filter` | `Crucible.Stage.Analysis.Filter` | Filter outputs by surrogate scores |
 | `:bench` | `Crucible.Stage.Bench` | Statistical testing |
 | `:report` | `Crucible.Stage.Report` | Generate output artifacts |
 
@@ -412,21 +412,21 @@ IO.inspect(ctx.metrics.cns, label: "CNS Metrics")
 
 CrucibleFramework defines adapter behaviours for pluggable evaluation:
 
-### CNS Adapters
+### Analysis Adapters
 
 ```elixir
-# lib/crucible/cns/adapter.ex
-defmodule Crucible.CNS.Adapter do
+# lib/crucible/analysis/adapter.ex
+defmodule Crucible.Analysis.Adapter do
   @callback evaluate(examples, outputs, opts) :: {:ok, map()} | {:error, term()}
 end
 
-# lib/crucible/cns/surrogate_adapter.ex
-defmodule Crucible.CNS.SurrogateAdapter do
+# lib/crucible/analysis/surrogate_adapter.ex
+defmodule Crucible.Analysis.SurrogateAdapter do
   @callback compute_surrogates(examples, outputs, opts) :: {:ok, map()} | {:error, term()}
 end
 
-# lib/crucible/cns/tda_adapter.ex
-defmodule Crucible.CNS.TdaAdapter do
+# lib/crucible/analysis/tda_adapter.ex
+defmodule Crucible.Analysis.TdaAdapter do
   @callback compute_tda(snos, opts) :: {:ok, map()} | {:error, term()}
 end
 ```
@@ -435,9 +435,9 @@ Configure adapters in `config/config.exs`:
 
 ```elixir
 config :crucible_framework,
-  cns_adapter: CnsExperiments.Adapters.Metrics,
-  cns_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
-  cns_tda_adapter: CnsExperiments.Adapters.TDA
+  analysis_adapter: CnsExperiments.Adapters.Metrics,
+  analysis_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
+  analysis_tda_adapter: CnsExperiments.Adapters.TDA
 ```
 
 ---
@@ -471,10 +471,10 @@ config :crucible_framework,
     data_checks: Crucible.Stage.DataChecks,
     guardrails: Crucible.Stage.Guardrails,
     backend_call: Crucible.Stage.BackendCall,
-    cns_metrics: Crucible.Stage.CNSMetrics,
-    cns_surrogate_validation: Crucible.Stage.CNSSurrogateValidation,
-    cns_tda_validation: Crucible.Stage.CNSTdaValidation,
-    cns_filter: Crucible.Stage.CNSFilter,
+    analysis_metrics: Crucible.Stage.Analysis.Metrics,
+    analysis_surrogate_validation: Crucible.Stage.Analysis.SurrogateValidation,
+    analysis_tda_validation: Crucible.Stage.Analysis.TDAValidation,
+    analysis_filter: Crucible.Stage.Analysis.Filter,
     bench: Crucible.Stage.Bench,
     report: Crucible.Stage.Report
   },
@@ -485,9 +485,9 @@ config :crucible_framework,
   },
 
   # Adapters
-  cns_adapter: CnsExperiments.Adapters.Metrics,
-  cns_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
-  cns_tda_adapter: CnsExperiments.Adapters.TDA,
+  analysis_adapter: CnsExperiments.Adapters.Metrics,
+  analysis_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
+  analysis_tda_adapter: CnsExperiments.Adapters.TDA,
   guardrail_adapter: Crucible.Stage.Guardrails.Noop,
 
   # Persistence

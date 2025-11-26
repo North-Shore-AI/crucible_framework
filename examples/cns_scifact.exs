@@ -224,7 +224,7 @@ else
       %StageDef{name: :data_checks},
       %StageDef{name: :guardrails},
       %StageDef{name: :backend_call},
-      %StageDef{name: :cns_metrics},
+      %StageDef{name: :analysis_metrics},
       %StageDef{name: :bench},
       %StageDef{name: :report}
     ],

@@ -1,4 +1,4 @@
-defmodule Crucible.Stage.CNSFilter do
+defmodule Crucible.Stage.Analysis.Filter do
   @moduledoc """
   Pipeline stage for filtering SNOs based on topological surrogate thresholds.
 
@@ -35,7 +35,7 @@ defmodule Crucible.Stage.CNSFilter do
 
   ## Example - Remove circular arguments
 
-      stage = {Crucible.Stage.CNSFilter, %{
+      stage = {Crucible.Stage.Analysis.Filter, %{
         source: :examples,
         max_beta1: 0,  # Remove any SNO with cycles
         mode: :remove
@@ -43,7 +43,7 @@ defmodule Crucible.Stage.CNSFilter do
 
   ## Example - Flag high-fragility claims
 
-      stage = {Crucible.Stage.CNSFilter, %{
+      stage = {Crucible.Stage.Analysis.Filter, %{
         source: :outputs,
         max_fragility: 0.7,
         mode: :flag,
@@ -55,7 +55,7 @@ defmodule Crucible.Stage.CNSFilter do
   Updates the context with:
   - Filtered SNO list (when mode is :remove)
   - Flagged SNOs with reason (when mode is :flag)
-  - `:cns_filter` metrics with filtering statistics
+  - `:analysis_filter` metrics with filtering statistics
   """
 
   @behaviour Crucible.Stage
@@ -77,7 +77,7 @@ defmodule Crucible.Stage.CNSFilter do
       {:ok, updated_ctx}
     else
       {:error, reason} = error ->
-        Logger.error("[CNSFilter] Failed: #{inspect(reason)}")
+        Logger.error("[Analysis.Filter] Failed: #{inspect(reason)}")
         error
     end
   end
@@ -85,7 +85,7 @@ defmodule Crucible.Stage.CNSFilter do
   @impl true
   def describe(opts) do
     %{
-      stage: "CNSFilter",
+      stage: "AnalysisFilter",
       description: "Filter SNOs based on topological surrogate thresholds",
       source: opts[:source] || :examples,
       mode: opts[:mode] || :remove,
@@ -345,14 +345,14 @@ defmodule Crucible.Stage.CNSFilter do
 
     updated_ctx = %{
       updated_ctx
-      | metrics: Map.put(updated_ctx.metrics, :cns_filter, filter_metrics)
+      | metrics: Map.put(updated_ctx.metrics, :analysis_filter, filter_metrics)
     }
 
     # Add to assigns
     assigns = updated_ctx.assigns || %{}
 
     updated_assigns =
-      Map.put(assigns, :cns_filter, %{
+      Map.put(assigns, :analysis_filter, %{
         total_filtered: stats.filtered,
         total_passed: stats.passed,
         filter_stats: stats
@@ -362,7 +362,7 @@ defmodule Crucible.Stage.CNSFilter do
 
     # Log summary
     Logger.info(
-      "[CNSFilter] Processed #{stats.total} items: #{stats.passed} passed, #{stats.filtered} filtered"
+      "[Analysis.Filter] Processed #{stats.total} items: #{stats.passed} passed, #{stats.filtered} filtered"
     )
 
     {:ok, updated_ctx}

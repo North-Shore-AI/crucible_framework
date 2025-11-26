@@ -48,7 +48,7 @@ experiment =
           create_sampler?: true
         }
       },
-      %StageDef{name: :cns_metrics},
+      %StageDef{name: :analysis_metrics},
       %StageDef{name: :bench},
       %StageDef{name: :report}
     ],
