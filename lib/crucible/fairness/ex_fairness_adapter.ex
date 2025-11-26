@@ -42,8 +42,7 @@ defmodule Crucible.Fairness.ExFairnessAdapter do
 
   require Logger
 
-  # Check if ExFairness is available at compile time
-  @ex_fairness_available Code.ensure_loaded?(ExFairness)
+  @compile {:no_warn_undefined, ExFairness}
 
   @available_metrics [
     :demographic_parity,
@@ -57,11 +56,11 @@ defmodule Crucible.Fairness.ExFairnessAdapter do
   @doc """
   Returns true if ExFairness is available.
   """
-  def available?, do: @ex_fairness_available
+  def available?, do: ex_fairness_available?()
 
   @impl true
   def evaluate(predictions, labels, sensitive_attr, opts) do
-    if not @ex_fairness_available do
+    if not ex_fairness_available?() do
       {:error,
        {:ex_fairness_not_available,
         "ExFairness library is not installed. Add {:ex_fairness, path: \"../ExFairness\"} to your dependencies."}}
@@ -225,6 +224,8 @@ defmodule Crucible.Fairness.ExFairnessAdapter do
   defp compute_single_metric(unknown_metric, _predictions, _labels, _sensitive, _opts) do
     %{error: "Unknown metric: #{unknown_metric}", passes: false}
   end
+
+  defp ex_fairness_available?, do: Code.ensure_loaded?(ExFairness)
 
   # Report generation
 

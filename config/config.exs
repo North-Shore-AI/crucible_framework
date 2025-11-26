@@ -19,7 +19,7 @@ config :crucible_framework,
     bench: Crucible.Stage.Bench,
     report: Crucible.Stage.Report
   },
-  # CNS Adapters: default to no-ops; override in integration apps (e.g., cns_experiments)
+  # CNS Adapters: default to no-ops; override in integration apps (e.g., cns_crucible)
   cns_adapter: Crucible.CNS.Noop,
   cns_surrogate_adapter: Crucible.CNS.SurrogateNoop,
   cns_tda_adapter: Crucible.CNS.TDANoop,

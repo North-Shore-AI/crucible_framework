@@ -2,7 +2,7 @@ defmodule Crucible.CNS.TDAAdapter do
   @moduledoc """
   Behaviour for plugging CNS-style topological data analysis into Crucible.
 
-  Implementations live in higher-level apps (e.g., `cns_experiments`) and are
+  Implementations live in higher-level apps (e.g., `cns_crucible`) and are
   responsible for turning experiment examples/outputs into SNOs and computing
   persistent homology metrics.
   """

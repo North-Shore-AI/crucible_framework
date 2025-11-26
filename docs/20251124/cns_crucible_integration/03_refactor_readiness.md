@@ -6,7 +6,7 @@
 ## What must be in place
 
 1) **Placement decision**
-   - Keep TrainingV2 in `cns_experiments` (preferred) or a new `cns_training` app.
+   - Keep TrainingV2 in `cns_crucible` (preferred) or a new `cns_training` app.
    - Leave `cns` core with metrics/adapter only to avoid pulling in Crucible/Tinkex.
 
 2) **Dependencies**
@@ -31,11 +31,11 @@
 
 ## Migration steps (if/when enabling TrainingV2)
 
-1. Move/rename `cns/lib/cns/training_v2.ex.disabled` into the host app (e.g., `cns_experiments/lib/.../training_v2.ex`).
+1. Move/rename `cns/lib/cns/training_v2.ex.disabled` into the host app (e.g., `cns_crucible/lib/.../training_v2.ex`).
 2. Wire dataset prep to real files and ensure `Stage.DataLoad` options match.
-3. Ensure CNS adapters are configured in the consumer app (see `cns_experiments` adapters).
+3. Ensure CNS adapters are configured in the consumer app (see `cns_crucible` adapters).
 4. Decide on ensemble/hedging defaults in the Experiment IR (keep off for first run).
-5. Add docs and examples in `cns_experiments` (CLI script or Mix task).
+5. Add docs and examples in `cns_crucible` (CLI script or Mix task).
 
 ## Open questions
 

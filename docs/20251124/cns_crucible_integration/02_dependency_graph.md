@@ -44,7 +44,7 @@
             ^  
             |  (Experiment IR + data)  
     +----------------------+
-    |   cns_experiments    |
+    |    cns_crucible      |
     |----------------------|
     | Experiment builders  |
     | Dataset loaders      |
@@ -64,11 +64,11 @@
   - Standalone libs; pulled in by `crucible_framework`.
 - **tinkex**
   - Standalone SDK; pulled in by `crucible_framework` or consumer app.
-- **cns_experiments**
+- **cns_crucible**
   - Direct: `cns`, `crucible_framework`, `tinkex`, ML stack (nx/bumblebee/axon), data utils.
   - Should host TrainingV2 / Experiment IR to avoid polluting `cns` deps.
 
 ## Notes
 
-- Turning on `CNS.TrainingV2` in `cns` would force `crucible_framework` + `tinkex` into the core lib. Prefer keeping training orchestration in `cns_experiments`.
+- Turning on `CNS.TrainingV2` in `cns` would force `crucible_framework` + `tinkex` into the core lib. Prefer keeping training orchestration in `cns_crucible`.
 - If you need `TrainingV2` shared, consider a small adapter app (e.g., `cns_training`) that depends on both `cns` and `crucible_framework`.

@@ -129,7 +129,7 @@ else
   Logger.configure(level: :info)
 end
 
-# Check if we're in cns_experiments or crucible_framework
+# Check if we're in cns_crucible or crucible_framework
 cns_exp_available = Code.ensure_loaded?(CnsExperiments.Experiments.ScifactClaimExtraction)
 
 if cns_exp_available do
@@ -286,7 +286,7 @@ else
   end)
 
   IO.puts("\nTo run this experiment:")
-  IO.puts("1. Ensure cns_experiments is compiled: cd cns_experiments && mix compile")
+  IO.puts("1. Ensure cns_crucible is compiled: cd cns_crucible && mix compile")
   IO.puts("2. Set TINKER_API_KEY environment variable")
   IO.puts("3. Run: mix run examples/cns_scifact.exs")
 end

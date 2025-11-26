@@ -18,7 +18,7 @@
 - Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages for the full ML lifecycle.
 - Backend behaviour plus a mockable Tinkex implementation for LoRA training and sampling.
 - Persistence layer (Ecto/Postgres) for experiments, runs, and artifacts.
-- **CNS Integration**: Full support for CNS (Chiral Narrative Synthesis) experiments via the `cns_experiments` companion app.
+- **CNS Integration**: Full support for CNS (Chiral Narrative Synthesis) experiments via the `cns_crucible` companion app.
 
 ---
 
@@ -65,7 +65,7 @@ CrucibleFramework is the **reliability engine** at the center of the North-Shore
           ┌────────────────────────────┐
           │  SURFACES / CLIENT APPS    │
           │                            │
-          │  • cns_experiments         │
+          │  • cns_crucible            │
           │  • LiveView / Phoenix UI   │
           │  • Python SDK / notebooks  │
           │  • CLI (mix tasks)         │
@@ -385,7 +385,7 @@ The CNS (Chiral Narrative Synthesis) SciFact experiment demonstrates the full in
 
 ### IR Flow Through the System
 
-1. **Surface layer** (`cns_experiments`): Builds `%Experiment{}` IR with CNS-specific configuration
+1. **Surface layer** (`cns_crucible`): Builds `%Experiment{}` IR with CNS-specific configuration
 2. **Engine** (`crucible_framework`): Receives IR, resolves stages, executes pipeline
 3. **Stages**: Transform `%Context{}`, call adapters, accumulate metrics
 4. **Backend** (`Crucible.Backend.Tinkex`): Handles actual Tinkex API calls
@@ -394,7 +394,7 @@ The CNS (Chiral Narrative Synthesis) SciFact experiment demonstrates the full in
 ### Running the Experiment
 
 ```elixir
-# Via cns_experiments
+# Via cns_crucible
 CnsExperiments.Experiments.ScifactClaimExtraction.run(
   batch_size: 4,
   limit: 100,
@@ -534,7 +534,7 @@ mix dialyzer                          # Static analysis
 | Repository | Purpose |
 |------------|---------|
 | [cns](https://github.com/North-Shore-AI/cns) | Core CNS dialectical reasoning library |
-| [cns_experiments](https://github.com/North-Shore-AI/cns_experiments) | CNS + Crucible integration harness |
+| [cns_crucible](https://github.com/North-Shore-AI/cns_crucible) | CNS + Crucible integration harness |
 | [tinkex](https://github.com/North-Shore-AI/tinkex) | Tinker SDK for LoRA training |
 | [crucible_ensemble](https://github.com/North-Shore-AI/crucible_ensemble) | Multi-model voting |
 | [crucible_hedging](https://github.com/North-Shore-AI/crucible_hedging) | Request hedging |

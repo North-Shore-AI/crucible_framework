@@ -5,15 +5,34 @@
 
 require Logger
 
-# Add CNS to path if available
-Code.append_path("../cns/_build/dev/lib/cns/ebin")
+# Add CNS and its deps to the code path when running standalone
+defmodule PathLoader do
+  @cns_build "../cns/_build/dev/lib"
+
+  def add_paths do
+    if File.dir?(@cns_build) do
+      @cns_build
+      |> File.ls!()
+      |> Enum.each(fn app ->
+        ebin = Path.join([@cns_build, app, "ebin"])
+        if File.dir?(ebin), do: Code.append_path(ebin)
+      end)
+    end
+  end
+end
+
+PathLoader.add_paths()
 
 defmodule SurrogateValidator do
   @moduledoc """
   Validates topological surrogates on SciFact dataset.
   """
 
-  @data_file "priv/data/scifact_claim_extractor_clean.jsonl"
+  @data_candidates [
+    "priv/data/scifact_claim_extractor_clean.jsonl",
+    "../cns_crucible/priv/data/scifact_claim_extractor_clean.jsonl",
+    "../cns/priv/data/scifact_claim_extractor_clean.jsonl"
+  ]
 
   def run do
     Logger.info("Starting surrogate validation on SciFact dataset...")
@@ -40,18 +59,20 @@ defmodule SurrogateValidator do
   end
 
   defp load_dataset do
-    path = Path.join([File.cwd!(), @data_file])
+    path = Enum.find(@data_candidates, &File.exists?/1)
 
-    if File.exists?(path) do
-      examples =
-        path
-        |> File.stream!()
-        |> Enum.map(&Jason.decode!/1)
-        |> Enum.to_list()
+    case path do
+      nil ->
+        {:error, {:file_not_found, @data_candidates}}
 
-      {:ok, examples}
-    else
-      {:error, :file_not_found}
+      path ->
+        examples =
+          path
+          |> File.stream!()
+          |> Enum.map(&Jason.decode!/1)
+          |> Enum.to_list()
+
+        {:ok, examples}
     end
   end
 
@@ -132,7 +153,7 @@ defmodule SurrogateValidator do
     variance_factor = n_relations / max(n_claims, 1)
 
     # Generate embeddings with controlled variance
-    for i <- 1..max(3, n_claims) do
+    for _i <- 1..max(3, n_claims) do
       base = [:rand.uniform(), :rand.uniform()]
       noise = variance_factor * 0.1
 

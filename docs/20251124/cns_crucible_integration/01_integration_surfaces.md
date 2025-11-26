@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-24  
 **Status:** Draft (actionable)  
-**Audience:** CNS owners, Crucible core, cns_experiments maintainers
+**Audience:** CNS owners, Crucible core, cns_crucible maintainers
 
 ## What plugs into what
 
@@ -10,7 +10,7 @@
   - Provides domain logic (SNOs, topology, chirality, critics).
   - Exposes behaviours only; concrete adapters live outside the core library.
   - Should stay backend-agnostic; avoid hard deps on Crucible/Tinkex in `mix.exs`.
-- **cns_experiments (app)**
+- **cns_crucible (app)**
   - Owns concrete Experiment IR definitions and data loaders.
   - Should host training orchestration (the future `TrainingV2`) to avoid pulling Crucible/Tinkex into the core CNS lib.
   - Responsible for wiring CNS adapter, stages, and backend config.
@@ -23,8 +23,8 @@
 ## Recommended placement of the bridge
 
 - Keep **CNS core** clean: ship theory/algorithms only; adapters belong in the integration app.
-- Move/keep **training + experiment IR** in **cns_experiments** (or another app), not in `cns`. That avoids forcing Crucible/Tinkex deps into the library and keeps the core publishable to Hex without heavy deps.
-- If you need shared helpers, create a thin `CNS.TrainingV2` in `cns_experiments` (or a new `cns_training` app) that wraps Crucible IR. Leave the disabled file in `cns` as a reference only.
+- Move/keep **training + experiment IR** in **cns_crucible** (or another app), not in `cns`. That avoids forcing Crucible/Tinkex deps into the library and keeps the core publishable to Hex without heavy deps.
+- If you need shared helpers, create a thin `CNS.TrainingV2` in `cns_crucible` (or a new `cns_training` app) that wraps Crucible IR. Leave the disabled file in `cns` as a reference only.
 
 ## Integration points (today)
 
