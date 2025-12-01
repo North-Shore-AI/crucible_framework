@@ -5,7 +5,7 @@ defmodule Crucible.Data.InMemory do
 
   @behaviour Crucible.Data.Provider
 
-  alias Crucible.IR.DatasetRef
+  alias CrucibleIR.DatasetRef
 
   @impl true
   def load(%DatasetRef{options: opts} = dataset_ref, _opts) do

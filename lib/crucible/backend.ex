@@ -5,7 +5,7 @@ defmodule Crucible.Backend do
   Implementations may talk to Tinkex, Nx/Axon, or external APIs.
   """
 
-  alias Crucible.IR.Experiment
+  alias CrucibleIR.Experiment
 
   @type backend_id :: atom()
   @type backend_config :: map()

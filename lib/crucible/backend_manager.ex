@@ -3,7 +3,7 @@ defmodule Crucible.BackendManager do
   Helper utilities for resolving and initializing backends.
   """
 
-  alias Crucible.IR.BackendRef
+  alias CrucibleIR.BackendRef
   alias Crucible.Registry
 
   @spec resolve_module(BackendRef.t()) :: {:ok, module()} | {:error, term()}

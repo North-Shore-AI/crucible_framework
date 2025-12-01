@@ -6,7 +6,7 @@ defmodule Crucible.Stage.Report do
   @behaviour Crucible.Stage
 
   alias Crucible.Context
-  alias Crucible.IR.OutputSpec
+  alias CrucibleIR.OutputSpec
   alias CrucibleFramework.Persistence
   require Logger
 

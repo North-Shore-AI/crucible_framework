@@ -1,21 +1,36 @@
 defmodule Crucible.Stage.BackendCallTest do
-  use ExUnit.Case, async: true
+  # async: false to avoid race conditions with shared :backends application env
+  use ExUnit.Case, async: false
+
+  # Suppress expected log messages during ensemble/hedging tests
+  @moduletag capture_log: true
 
   import Mox
 
   alias Crucible.Context
   alias Crucible.Stage.BackendCall
-  alias Crucible.IR.{BackendRef, Experiment, EnsembleConfig, HedgingConfig, ReliabilityConfig}
+  alias CrucibleIR.{BackendRef, Experiment}
 
   setup :set_mox_from_context
   setup :verify_on_exit!
 
   setup do
+    # Save original backends config
+    original_backends = Application.get_env(:crucible_framework, :backends)
+
     Application.put_env(:crucible_framework, :backends, %{
       mock: Crucible.BackendMock,
       mock2: Crucible.BackendMock,
       mock3: Crucible.BackendMock
     })
+
+    on_exit(fn ->
+      if original_backends do
+        Application.put_env(:crucible_framework, :backends, original_backends)
+      else
+        Application.delete_env(:crucible_framework, :backends)
+      end
+    end)
 
     :ok
   end
@@ -29,17 +44,17 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :majority_vote,
-            members: [
+            models: [
               %BackendRef{id: :mock, options: %{}},
               %BackendRef{id: :mock2, options: %{}},
               %BackendRef{id: :mock3, options: %{}}
             ],
             options: %{}
           },
-          hedging: %HedgingConfig{strategy: :off}
+          hedging: %CrucibleIR.Reliability.Hedging{strategy: :off}
         }
       }
 
@@ -92,10 +107,10 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :majority_vote,
-            members: [
+            models: [
               %BackendRef{id: :mock, options: %{}},
               %BackendRef{id: :mock2, options: %{}}
             ],
@@ -104,15 +119,18 @@ defmodule Crucible.Stage.BackendCallTest do
         }
       }
 
-      # First backend succeeds
-      expect(Crucible.BackendMock, :init, 1, fn :mock, %{} -> {:ok, :state} end)
+      # Use a single expect with branching - first backend succeeds, second fails
+      expect(Crucible.BackendMock, :init, 2, fn
+        id, %{} ->
+          case id do
+            :mock -> {:ok, :state}
+            :mock2 -> {:error, :init_failed}
+          end
+      end)
 
       expect(Crucible.BackendMock, :start_session, 1, fn :state, ^experiment ->
         {:ok, :session}
       end)
-
-      # Second backend fails
-      expect(Crucible.BackendMock, :init, 1, fn :mock2, %{} -> {:error, :init_failed} end)
 
       ctx = %Context{
         experiment_id: experiment.id,
@@ -135,10 +153,10 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :weighted,
-            members: [
+            models: [
               %BackendRef{id: :mock, options: %{}}
             ],
             options: %{weights: %{mock: 1.0}}
@@ -187,10 +205,10 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :majority_vote,
-            members: [%BackendRef{id: :mock, options: %{}}],
+            models: [%BackendRef{id: :mock, options: %{}}],
             options: %{}
           }
         }
@@ -220,12 +238,12 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{strategy: :none},
-          hedging: %HedgingConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{strategy: :none},
+          hedging: %CrucibleIR.Reliability.Hedging{
             strategy: :fixed_delay,
             delay_ms: 50,
-            max_extra_requests: 1,
+            max_hedges: 1,
             options: %{}
           }
         }
@@ -272,11 +290,11 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          hedging: %HedgingConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          hedging: %CrucibleIR.Reliability.Hedging{
             strategy: :percentile,
             percentile: 95,
-            max_extra_requests: 1,
+            max_hedges: 1,
             options: %{}
           }
         }
@@ -321,19 +339,19 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :majority_vote,
-            members: [
+            models: [
               %BackendRef{id: :mock, options: %{}},
               %BackendRef{id: :mock2, options: %{}}
             ],
             options: %{}
           },
-          hedging: %HedgingConfig{
+          hedging: %CrucibleIR.Reliability.Hedging{
             strategy: :fixed_delay,
             delay_ms: 10,
-            max_extra_requests: 1,
+            max_hedges: 1,
             options: %{}
           }
         }
@@ -383,9 +401,9 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{strategy: :none},
-          hedging: %HedgingConfig{strategy: :off}
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{strategy: :none},
+          hedging: %CrucibleIR.Reliability.Hedging{strategy: :off}
         }
       }
 
@@ -433,7 +451,7 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{}
+        reliability: %CrucibleIR.Reliability.Config{}
       }
 
       expect(Crucible.BackendMock, :start_session, fn :state, ^experiment ->
@@ -477,10 +495,10 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          ensemble: %EnsembleConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          ensemble: %CrucibleIR.Reliability.Ensemble{
             strategy: :majority_vote,
-            members: [%BackendRef{id: :mock, options: %{}}],
+            models: [%BackendRef{id: :mock, options: %{}}],
             options: %{}
           }
         }
@@ -533,7 +551,7 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{}
+        reliability: %CrucibleIR.Reliability.Config{}
       }
 
       expect(Crucible.BackendMock, :start_session, fn :state, ^experiment ->
@@ -595,7 +613,7 @@ defmodule Crucible.Stage.BackendCallTest do
         id: "exp",
         backend: %BackendRef{id: :mock, options: %{}},
         pipeline: [],
-        reliability: %ReliabilityConfig{}
+        reliability: %CrucibleIR.Reliability.Config{}
       }
 
       expect(Crucible.BackendMock, :start_session, fn :state, ^experiment ->

@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.5.0"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -35,6 +35,9 @@ defmodule CrucibleFramework.MixProject do
 
   defp deps do
     [
+      # Shared IR
+      {:crucible_ir, "~> 0.1.1"},
+
       # Component Libraries
       {:crucible_ensemble, path: "../crucible_ensemble"},
       {:crucible_hedging, path: "../crucible_hedging"},
@@ -45,7 +48,7 @@ defmodule CrucibleFramework.MixProject do
       {:ex_fairness, path: "../ExFairness", optional: true},
 
       # Backend Integration
-      {:tinkex, "~> 0.1.2"},
+      {:tinkex, "~> 0.1.12"},
 
       # Core Dependencies
       {:ecto_sql, "~> 3.11"},

@@ -3,8 +3,10 @@ defmodule Crucible.Pipeline.Runner do
   Executes experiment pipelines stage-by-stage.
   """
 
+  require Logger
+
   alias Crucible.{Context, Registry, TraceIntegration}
-  alias Crucible.IR.{Experiment, StageDef}
+  alias CrucibleIR.{Experiment, StageDef}
   alias CrucibleFramework.Persistence
 
   @doc """
@@ -40,6 +42,9 @@ defmodule Crucible.Pipeline.Runner do
 
             case mod.run(ctx_acc, stage_def.options) do
               {:ok, new_ctx} ->
+                # Mark stage as completed
+                new_ctx = Context.mark_stage_complete(new_ctx, stage_def.name)
+
                 # Emit trace event for stage completion
                 new_ctx =
                   TraceIntegration.emit_stage_complete(new_ctx, stage_def.name, new_ctx.metrics)
@@ -84,7 +89,7 @@ defmodule Crucible.Pipeline.Runner do
   defp resolve_stage(%StageDef{module: mod}), do: {:ok, mod}
 
   defp log_stage(name) do
-    IO.puts("→ Running stage #{name}")
+    Logger.info("Running stage #{name}")
   end
 
   defp finalize({:ok, ctx}, nil), do: {:ok, ctx}

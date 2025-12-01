@@ -3,7 +3,7 @@ defmodule Crucible.Data.Provider do
   Behaviour for dataset providers used by `Crucible.Stage.DataLoad`.
   """
 
-  alias Crucible.IR.DatasetRef
+  alias CrucibleIR.DatasetRef
 
   @callback load(DatasetRef.t(), map()) :: {:ok, Enumerable.t()} | {:error, term()}
 end

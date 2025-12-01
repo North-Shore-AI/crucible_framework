@@ -3,7 +3,7 @@ defmodule CrucibleFramework do
   Public entrypoints for running Crucible experiments.
   """
 
-  alias Crucible.IR.Experiment
+  alias CrucibleIR.Experiment
   alias Crucible.Pipeline.Runner
 
   @spec run(Experiment.t(), keyword()) :: {:ok, Crucible.Context.t()} | {:error, {atom(), term()}}

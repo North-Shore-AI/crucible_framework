@@ -12,13 +12,27 @@
 
 ---
 
-## What's New (v0.3.0 - 2025-11-23)
+## What's New (v0.5.0 - 2025-11-26)
 
-- Declarative Experiment IR (`Crucible.IR.*`) that fully describes datasets, stages, backends, and outputs.
-- Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages for the full ML lifecycle.
-- Backend behaviour plus a mockable Tinkex implementation for LoRA training and sampling.
-- Persistence layer (Ecto/Postgres) for experiments, runs, and artifacts.
-- **CNS Integration**: Full support for CNS (Chiral Narrative Synthesis) experiments via the `cns_crucible` companion app.
+- **BREAKING**: Now depends on `crucible_ir` package for shared IR structs across the Crucible ecosystem
+- **Backwards Compatibility**: `Crucible.IR.*` aliases provided for smooth migration (deprecated in v1.0.0)
+- **Unified IR**: All component libraries now share the same IR definitions via `crucible_ir`
+- **Field Renames**: Ensemble `members` → `models`, Hedging `max_extra_requests` → `max_hedges`
+
+See [CHANGELOG.md](CHANGELOG.md) for complete migration guide.
+
+## Previous Releases
+
+**v0.4.0 (2025-11-25):**
+- Enhanced Context Ergonomics: 20+ helper functions for common context operations
+- Pre-Flight Validation: New `Stage.Validate` for early detection of configuration errors
+- Stage Tracking: Automatic tracking of completed stages in pipeline execution
+
+**v0.3.0 (2025-11-23):**
+- Declarative Experiment IR (`Crucible.IR.*`) that fully describes datasets, stages, backends, and outputs
+- Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages for the full ML lifecycle
+- Backend behaviour plus a mockable Tinkex implementation for LoRA training and sampling
+- Persistence layer (Ecto/Postgres) for experiments, runs, and artifacts
 
 ---
 
@@ -33,7 +47,7 @@
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.3.0"}
+    {:crucible_framework, "~> 0.5.0"}
   ]
 end
 ```

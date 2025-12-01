@@ -1,11 +1,10 @@
 defmodule Crucible.IR.ExperimentTest do
   use ExUnit.Case, async: true
 
-  alias Crucible.IR.{
+  alias CrucibleIR.{
     BackendRef,
     DatasetRef,
     Experiment,
-    ReliabilityConfig,
     StageDef
   }
 
@@ -16,8 +15,9 @@ defmodule Crucible.IR.ExperimentTest do
       pipeline: [%StageDef{name: :data_load}]
     }
 
-    assert experiment.reliability == %ReliabilityConfig{}
-    assert experiment.tags == []
+    # CrucibleIR.Experiment has nil defaults for optional fields
+    assert experiment.reliability == nil
+    assert experiment.tags == nil
     assert experiment.dataset == nil
   end
 

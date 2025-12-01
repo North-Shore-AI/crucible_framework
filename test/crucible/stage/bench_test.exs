@@ -1,9 +1,12 @@
 defmodule Crucible.Stage.BenchTest do
   use ExUnit.Case, async: true
 
+  # Suppress expected log messages when no data is available
+  @moduletag capture_log: true
+
   alias Crucible.Context
   alias Crucible.Stage.Bench
-  alias Crucible.IR.{Experiment, StatsConfig, ReliabilityConfig}
+  alias CrucibleIR.Experiment
 
   describe "run/2" do
     setup do
@@ -11,8 +14,8 @@ defmodule Crucible.Stage.BenchTest do
         id: "test-exp",
         backend: nil,
         pipeline: [],
-        reliability: %ReliabilityConfig{
-          stats: %StatsConfig{
+        reliability: %CrucibleIR.Reliability.Config{
+          stats: %CrucibleIR.Reliability.Stats{
             tests: [:ttest],
             alpha: 0.05,
             options: %{}
@@ -71,8 +74,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               alpha: 0.05,
               options: %{}
@@ -113,8 +116,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:bootstrap],
               alpha: 0.05,
               options: %{bootstrap_iterations: 1000}
@@ -146,8 +149,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:mann_whitney],
               alpha: 0.05,
               options: %{}
@@ -180,8 +183,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:paired_ttest],
               alpha: 0.05,
               options: %{}
@@ -212,8 +215,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:anova],
               alpha: 0.05,
               options: %{}
@@ -241,8 +244,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               alpha: 0.05,
               options: %{}
@@ -270,8 +273,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:welch_ttest],
               alpha: 0.05,
               options: %{}
@@ -305,8 +308,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:bootstrap],
               alpha: 0.05,
               options: %{bootstrap_iterations: 100}
@@ -340,8 +343,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               alpha: 0.05,
               options: %{}
@@ -383,8 +386,8 @@ defmodule Crucible.Stage.BenchTest do
 
       experiment = %{
         context.experiment
-        | reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+        | reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               # Stricter alpha
               alpha: 0.01,
@@ -436,8 +439,8 @@ defmodule Crucible.Stage.BenchTest do
           id: "test",
           backend: nil,
           pipeline: [],
-          reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+          reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               alpha: 0.05,
               options: %{}
@@ -479,8 +482,8 @@ defmodule Crucible.Stage.BenchTest do
           id: "test",
           backend: nil,
           pipeline: [],
-          reliability: %ReliabilityConfig{
-            stats: %StatsConfig{
+          reliability: %CrucibleIR.Reliability.Config{
+            stats: %CrucibleIR.Reliability.Stats{
               tests: [:ttest],
               alpha: 0.05,
               options: %{}

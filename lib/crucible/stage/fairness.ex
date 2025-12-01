@@ -83,7 +83,7 @@ defmodule Crucible.Stage.Fairness do
   require Logger
 
   alias Crucible.Context
-  alias Crucible.IR.FairnessConfig
+  alias CrucibleIR.Reliability.Fairness
 
   @default_metrics [:demographic_parity, :equalized_odds, :equal_opportunity, :predictive_parity]
   @default_threshold 0.1
@@ -111,7 +111,7 @@ defmodule Crucible.Stage.Fairness do
   end
 
   # Check if fairness is enabled
-  defp fairness_enabled?(%FairnessConfig{enabled: true}), do: true
+  defp fairness_enabled?(%Fairness{enabled: true}), do: true
   defp fairness_enabled?(_), do: false
 
   # Main evaluation logic
@@ -217,11 +217,11 @@ defmodule Crucible.Stage.Fairness do
   end
 
   # Get metrics to evaluate
-  defp get_metrics(%FairnessConfig{metrics: []}, opts) do
+  defp get_metrics(%Fairness{metrics: []}, opts) do
     Map.get(opts, :metrics, @default_metrics)
   end
 
-  defp get_metrics(%FairnessConfig{metrics: metrics}, _opts), do: metrics
+  defp get_metrics(%Fairness{metrics: metrics}, _opts), do: metrics
 
   # Extract data for fairness evaluation
   defp extract_fairness_data(ctx, fairness_config, opts) do

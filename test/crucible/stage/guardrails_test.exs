@@ -16,9 +16,9 @@ defmodule Crucible.Stage.GuardrailsTest do
     ctx = %Context{
       experiment_id: "exp",
       run_id: "run",
-      experiment: %Crucible.IR.Experiment{
+      experiment: %CrucibleIR.Experiment{
         id: "exp",
-        backend: %Crucible.IR.BackendRef{id: :tinkex},
+        backend: %CrucibleIR.BackendRef{id: :tinkex},
         pipeline: []
       },
       examples: [%{input: "x", output: "y"}]
@@ -35,9 +35,9 @@ defmodule Crucible.Stage.GuardrailsTest do
     ctx = %Context{
       experiment_id: "exp",
       run_id: "run",
-      experiment: %Crucible.IR.Experiment{
+      experiment: %CrucibleIR.Experiment{
         id: "exp",
-        backend: %Crucible.IR.BackendRef{id: :tinkex},
+        backend: %CrucibleIR.BackendRef{id: :tinkex},
         pipeline: []
       },
       examples: [%{input: "x", output: "y"}]

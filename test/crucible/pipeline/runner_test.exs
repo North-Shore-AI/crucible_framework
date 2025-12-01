@@ -1,7 +1,10 @@
 defmodule Crucible.Pipeline.RunnerTest do
   use ExUnit.Case, async: true
 
-  alias Crucible.IR.{BackendRef, Experiment, StageDef}
+  # Suppress expected log messages during pipeline execution
+  @moduletag capture_log: true
+
+  alias CrucibleIR.{BackendRef, Experiment, StageDef}
   alias Crucible.Pipeline.Runner
 
   defmodule StageOne do
