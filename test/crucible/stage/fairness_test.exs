@@ -1,9 +1,12 @@
 defmodule Crucible.Stage.FairnessTest do
   use ExUnit.Case, async: true
 
+  # Suppress expected log messages when no data is available
+  @moduletag capture_log: true
+
   alias Crucible.Context
   alias Crucible.Stage.Fairness
-  alias Crucible.IR.{Experiment, BackendRef, ReliabilityConfig, FairnessConfig}
+  alias CrucibleIR.{Experiment, BackendRef}
 
   describe "run/2 with fairness disabled" do
     test "skips evaluation when fairness is disabled" do
@@ -129,12 +132,12 @@ defmodule Crucible.Stage.FairnessTest do
         id: "test_exp",
         backend: %BackendRef{id: :tinkex},
         pipeline: [],
-        reliability: %ReliabilityConfig{
+        reliability: %CrucibleIR.Reliability.Config{
           fairness: fairness_config,
-          ensemble: %Crucible.IR.EnsembleConfig{strategy: :none, members: []},
-          hedging: %Crucible.IR.HedgingConfig{strategy: :off},
-          guardrails: %Crucible.IR.GuardrailConfig{profiles: []},
-          stats: %Crucible.IR.StatsConfig{tests: [], alpha: 0.05, options: %{}}
+          ensemble: %CrucibleIR.Reliability.Ensemble{strategy: :none, models: []},
+          hedging: %CrucibleIR.Reliability.Hedging{strategy: :off},
+          guardrails: %CrucibleIR.Reliability.Guardrail{profiles: []},
+          stats: %CrucibleIR.Reliability.Stats{tests: [], alpha: 0.05, options: %{}}
         }
       },
       outputs: [],
@@ -149,7 +152,7 @@ defmodule Crucible.Stage.FairnessTest do
         nil
 
       :default ->
-        %FairnessConfig{
+        %CrucibleIR.Reliability.Fairness{
           enabled: Keyword.get(opts, :fairness_enabled, false),
           group_by: Keyword.get(opts, :group_by, :sensitive_attr),
           metrics: Keyword.get(opts, :metrics, [:demographic_parity]),

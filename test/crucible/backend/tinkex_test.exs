@@ -4,7 +4,7 @@ defmodule Crucible.Backend.TinkexTest do
   import Mox
 
   alias Crucible.Backend.Tinkex
-  alias Crucible.IR.{BackendRef, Experiment}
+  alias CrucibleIR.{BackendRef, Experiment}
 
   setup :set_mox_from_context
   setup :verify_on_exit!

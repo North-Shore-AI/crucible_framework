@@ -3,7 +3,7 @@ defmodule CrucibleFramework.Persistence do
   Persistence helpers for recording experiments, runs, and artifacts.
   """
 
-  alias Crucible.IR.Experiment
+  alias CrucibleIR.Experiment
   alias CrucibleFramework.Repo
   alias CrucibleFramework.Persistence.{ArtifactRecord, ExperimentRecord, RunRecord}
 

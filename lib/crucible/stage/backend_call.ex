@@ -50,7 +50,8 @@ defmodule Crucible.Stage.BackendCall do
   require Logger
 
   alias Crucible.{BackendManager, Context}
-  alias Crucible.IR.{BackendRef, EnsembleConfig, HedgingConfig}
+  alias CrucibleIR.BackendRef
+  alias CrucibleIR.Reliability.{Ensemble, Hedging}
   alias CrucibleEnsemble
   alias CrucibleHedging
   alias CrucibleTrace
@@ -77,10 +78,11 @@ defmodule Crucible.Stage.BackendCall do
   def run(_ctx, _opts), do: {:error, :missing_backend}
 
   # Check if ensemble should be used
-  defp should_use_ensemble?(%EnsembleConfig{strategy: :none}), do: false
-  defp should_use_ensemble?(%EnsembleConfig{strategy: _, members: []}), do: false
+  defp should_use_ensemble?(%Ensemble{strategy: :none}), do: false
+  defp should_use_ensemble?(%Ensemble{strategy: _, models: []}), do: false
+  defp should_use_ensemble?(%Ensemble{strategy: _, models: nil}), do: false
 
-  defp should_use_ensemble?(%EnsembleConfig{strategy: _, members: members}) when is_list(members),
+  defp should_use_ensemble?(%Ensemble{strategy: _, models: models}) when is_list(models),
     do: true
 
   defp should_use_ensemble?(_), do: false
@@ -94,7 +96,7 @@ defmodule Crucible.Stage.BackendCall do
       {:error, :ensemble_requires_sample_mode}
     else
       # Initialize all backend members
-      with {:ok, backend_states} <- init_ensemble_backends(ctx, ensemble_config.members) do
+      with {:ok, backend_states} <- init_ensemble_backends(ctx, ensemble_config.models) do
         prompts = Map.get(opts, :prompts, [])
 
         # Process each prompt with ensemble
@@ -112,7 +114,7 @@ defmodule Crucible.Stage.BackendCall do
         # Calculate ensemble metrics
         ensemble_metrics = %{
           strategy: ensemble_config.strategy,
-          members_count: length(ensemble_config.members),
+          members_count: length(ensemble_config.models),
           samples: length(samples),
           errors: length(errors),
           average_consensus: calculate_average_consensus(samples),
@@ -175,8 +177,8 @@ defmodule Crucible.Stage.BackendCall do
   end
 
   # Check if hedging should be used
-  defp should_use_hedging?(%HedgingConfig{strategy: :off}), do: false
-  defp should_use_hedging?(%HedgingConfig{strategy: _}), do: true
+  defp should_use_hedging?(%Hedging{strategy: :off}), do: false
+  defp should_use_hedging?(%Hedging{strategy: _}), do: true
   defp should_use_hedging?(_), do: false
 
   # Initialize all ensemble backend members
@@ -355,7 +357,7 @@ defmodule Crucible.Stage.BackendCall do
   end
 
   # Build hedging options from config
-  defp build_hedging_opts(%HedgingConfig{} = config) do
+  defp build_hedging_opts(%Hedging{} = config, strategy_name \\ nil) do
     strategy =
       case config.strategy do
         :fixed_delay -> :fixed
@@ -364,7 +366,7 @@ defmodule Crucible.Stage.BackendCall do
 
     base_opts = [
       strategy: strategy,
-      max_hedges: config.max_extra_requests
+      max_hedges: config.max_hedges
     ]
 
     opts =
@@ -374,12 +376,24 @@ defmodule Crucible.Stage.BackendCall do
         _ -> base_opts
       end
 
-    Keyword.merge(opts, Map.to_list(config.options))
+    opts =
+      opts
+      |> Keyword.merge(Map.to_list(config.options))
+
+    if strategy_name && !Keyword.has_key?(opts, :strategy_name) do
+      Keyword.put(opts, :strategy_name, strategy_name)
+    else
+      opts
+    end
+  end
+
+  defp hedging_strategy_name(%BackendRef{id: id}, %Hedging{} = config) do
+    Map.get(config.options, :strategy_name) || :"hedging_#{id}"
   end
 
   # Run a hedged sample for ensemble
   defp run_hedged_sample(mod, sampler, prompt, ref, hedging_config) do
-    hedging_opts = build_hedging_opts(hedging_config)
+    hedging_opts = build_hedging_opts(hedging_config, hedging_strategy_name(ref, hedging_config))
 
     case CrucibleHedging.request(
            fn -> mod.sample(sampler, prompt, %{}) end,

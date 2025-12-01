@@ -2,7 +2,7 @@ defmodule Crucible.TraceIntegrationTest do
   use ExUnit.Case, async: true
 
   alias Crucible.{Context, TraceIntegration}
-  alias Crucible.IR.Experiment
+  alias CrucibleIR.Experiment
   alias CrucibleTrace
 
   describe "init_trace/2" do

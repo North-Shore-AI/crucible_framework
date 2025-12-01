@@ -7,7 +7,7 @@ defmodule Crucible.Stage.DataLoad do
 
   alias Crucible.Context
   alias Crucible.Data.InMemory
-  alias Crucible.IR.DatasetRef
+  alias CrucibleIR.DatasetRef
 
   @impl true
   def run(%Context{experiment: experiment} = ctx, opts) do

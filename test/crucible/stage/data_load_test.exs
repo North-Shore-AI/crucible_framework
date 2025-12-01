@@ -2,7 +2,7 @@ defmodule Crucible.Stage.DataLoadTest do
   use ExUnit.Case, async: true
 
   alias Crucible.Context
-  alias Crucible.IR.{BackendRef, DatasetRef, Experiment}
+  alias CrucibleIR.{BackendRef, DatasetRef, Experiment}
   alias Crucible.Stage.DataLoad
 
   defmodule FakeProvider do

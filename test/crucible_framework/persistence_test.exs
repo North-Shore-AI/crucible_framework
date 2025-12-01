@@ -2,7 +2,7 @@ defmodule CrucibleFramework.PersistenceTest do
   use ExUnit.Case, async: false
   @moduletag :integration
 
-  alias Crucible.IR.{BackendRef, Experiment, StageDef}
+  alias CrucibleIR.{BackendRef, Experiment, StageDef}
   alias CrucibleFramework.Persistence
   alias CrucibleFramework.Persistence.{ArtifactRecord, ExperimentRecord}
   alias CrucibleFramework.Repo
