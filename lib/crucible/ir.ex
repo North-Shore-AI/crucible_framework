@@ -27,17 +27,17 @@ defmodule Crucible.IR do
 
   ## Available Aliases
 
-  - `Crucible.IR.Experiment` → `CrucibleIR.Experiment`
-  - `Crucible.IR.DatasetRef` → `CrucibleIR.DatasetRef`
-  - `Crucible.IR.BackendRef` → `CrucibleIR.BackendRef`
-  - `Crucible.IR.StageDef` → `CrucibleIR.StageDef`
-  - `Crucible.IR.OutputSpec` → `CrucibleIR.OutputSpec`
-  - `Crucible.IR.ReliabilityConfig` → `CrucibleIR.Reliability.Config`
-  - `Crucible.IR.EnsembleConfig` → `CrucibleIR.Reliability.Ensemble`
-  - `Crucible.IR.HedgingConfig` → `CrucibleIR.Reliability.Hedging`
-  - `Crucible.IR.StatsConfig` → `CrucibleIR.Reliability.Stats`
-  - `Crucible.IR.FairnessConfig` → `CrucibleIR.Reliability.Fairness`
-  - `Crucible.IR.GuardrailConfig` → `CrucibleIR.Reliability.Guardrail`
+  - Crucible.IR.Experiment → CrucibleIR.Experiment
+  - Crucible.IR.DatasetRef → CrucibleIR.DatasetRef
+  - Crucible.IR.BackendRef → CrucibleIR.BackendRef
+  - Crucible.IR.StageDef → CrucibleIR.StageDef
+  - Crucible.IR.OutputSpec → CrucibleIR.OutputSpec
+  - Crucible.IR.ReliabilityConfig → CrucibleIR.Reliability.Config
+  - Crucible.IR.EnsembleConfig → CrucibleIR.Reliability.Ensemble
+  - Crucible.IR.HedgingConfig → CrucibleIR.Reliability.Hedging
+  - Crucible.IR.StatsConfig → CrucibleIR.Reliability.Stats
+  - Crucible.IR.FairnessConfig → CrucibleIR.Reliability.Fairness
+  - Crucible.IR.GuardrailConfig → CrucibleIR.Reliability.Guardrail
   """
 
   # Core IR modules

@@ -12,21 +12,19 @@
 
 ---
 
-## What's New (v0.5.0 - 2025-11-26)
+## What's New (v0.4.0 - 2025-12-23)
 
 - **BREAKING**: Now depends on `crucible_ir` package for shared IR structs across the Crucible ecosystem
 - **Backwards Compatibility**: `Crucible.IR.*` aliases provided for smooth migration (deprecated in v1.0.0)
 - **Unified IR**: All component libraries now share the same IR definitions via `crucible_ir`
 - **Field Renames**: Ensemble `members` → `models`, Hedging `max_extra_requests` → `max_hedges`
+- Enhanced Context Ergonomics: 20+ helper functions for common context operations
+- Pre-Flight Validation: New `Stage.Validate` for early detection of configuration errors
+- Stage Tracking: Automatic tracking of completed stages in pipeline execution
 
 See [CHANGELOG.md](CHANGELOG.md) for complete migration guide.
 
 ## Previous Releases
-
-**v0.4.0 (2025-11-25):**
-- Enhanced Context Ergonomics: 20+ helper functions for common context operations
-- Pre-Flight Validation: New `Stage.Validate` for early detection of configuration errors
-- Stage Tracking: Automatic tracking of completed stages in pipeline execution
 
 **v0.3.0 (2025-11-23):**
 - Declarative Experiment IR (`Crucible.IR.*`) that fully describes datasets, stages, backends, and outputs
@@ -47,7 +45,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete migration guide.
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.0"}
+    {:crucible_framework, "~> 0.4.0"}
   ]
 end
 ```
@@ -138,7 +136,7 @@ lib/crucible/ir/
 From the design spec (`001_crucible_long_term_plan.md`):
 
 1. **One experiment engine** - Everything plugs into Crucible via clean extension points
-2. **Stages are behaviours** - Each stage implements `Crucible.Stage.run/2`
+2. **Stages are behaviours** - Each stage implements the `Crucible.Stage` behaviour
 3. **Backends are location-independent** - Can be in-process, another BEAM node, or a remote API
 4. **No single-node assumptions** - IR never talks about nodes/hosts
 
