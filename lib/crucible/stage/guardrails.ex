@@ -1,6 +1,33 @@
 defmodule Crucible.Stage.Guardrails do
   @moduledoc """
-  Applies guardrail checks to examples before backend calls.
+  Applies guardrail checks to examples before processing.
+
+  This stage scans examples stored in `context.assigns[:examples]` using
+  a configured guardrail adapter. Domain-specific stages should load data
+  into assigns before running this stage.
+
+  ## Configuration
+
+      %StageDef{
+        name: :guardrails,
+        options: %{
+          adapter: MyApp.GuardrailAdapter,  # Optional, uses config default
+          fail_on_violation: false          # Fail on any violation
+        }
+      }
+
+  ## Adapter Behaviour
+
+  Adapters must implement `Crucible.Stage.Guardrails.Adapter`:
+
+      defmodule MyAdapter do
+        @behaviour Crucible.Stage.Guardrails.Adapter
+
+        @impl true
+        def scan(examples, opts) do
+          # Return {:ok, violations} or {:error, reason}
+        end
+      end
   """
 
   @behaviour Crucible.Stage
@@ -9,9 +36,9 @@ defmodule Crucible.Stage.Guardrails do
   alias Crucible.Stage.Guardrails.Noop
 
   @impl true
-  def run(%Context{examples: nil} = ctx, _opts), do: {:ok, ctx}
+  def run(%Context{assigns: %{examples: nil}} = ctx, _opts), do: {:ok, ctx}
 
-  def run(%Context{examples: examples} = ctx, opts) do
+  def run(%Context{assigns: %{examples: examples}} = ctx, opts) when is_list(examples) do
     adapter = adapter(opts)
 
     with {:ok, violations} <- adapter.scan(examples, opts) do
@@ -21,11 +48,9 @@ defmodule Crucible.Stage.Guardrails do
       }
 
       new_ctx =
-        %Context{
-          ctx
-          | metrics: Map.put(ctx.metrics, :guardrails, metrics),
-            assigns: Map.put(ctx.assigns, :guardrail_violations, violations)
-        }
+        ctx
+        |> Context.put_metric(:guardrails, metrics)
+        |> Context.assign(:guardrail_violations, violations)
 
       if violations != [] and Map.get(opts, :fail_on_violation, false) do
         {:error, {:guardrail_violation, violations}}
@@ -35,11 +60,26 @@ defmodule Crucible.Stage.Guardrails do
     end
   end
 
+  def run(%Context{} = ctx, _opts) do
+    # No examples in assigns - nothing to check
+    {:ok, ctx}
+  end
+
+  @impl true
+  def describe(opts) do
+    %{
+      stage: :guardrails,
+      description: "Applies guardrail checks to examples",
+      fail_on_violation: Map.get(opts, :fail_on_violation, false)
+    }
+  end
+
   defp adapter(opts) do
     mod =
       cond do
         is_map(opts) -> Map.get(opts, :adapter)
-        true -> Keyword.get(opts, :adapter)
+        is_list(opts) -> Keyword.get(opts, :adapter)
+        true -> nil
       end
 
     mod ||

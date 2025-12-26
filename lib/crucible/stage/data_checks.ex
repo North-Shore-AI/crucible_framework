@@ -2,8 +2,22 @@ defmodule Crucible.Stage.DataChecks do
   @moduledoc """
   Lightweight data validation stage.
 
+  This stage validates data stored in `context.assigns[:examples]`.
+  Domain-specific stages should load data into assigns before running this stage.
+
   This is intentionally minimal; heavier validation can be plugged in by
   providing a custom checker module that returns a list of issues.
+
+  ## Configuration
+
+      %StageDef{
+        name: :data_checks,
+        options: %{
+          required_fields: [:input, :output],  # Fields required in each example
+          fail_fast: false,                     # Fail immediately on issues
+          checker: MyApp.CustomChecker          # Optional custom checker module
+        }
+      }
   """
 
   @behaviour Crucible.Stage
@@ -11,19 +25,17 @@ defmodule Crucible.Stage.DataChecks do
   alias Crucible.Context
 
   @impl true
-  def run(%Context{examples: nil} = ctx, _opts), do: {:ok, ctx}
+  def run(%Context{assigns: %{examples: nil}} = ctx, _opts), do: {:ok, ctx}
 
-  def run(%Context{examples: examples} = ctx, opts) do
+  def run(%Context{assigns: %{examples: examples}} = ctx, opts) when is_list(examples) do
     required_fields = Map.get(opts, :required_fields, [:input, :output])
     checker = Map.get(opts, :checker)
 
     issues =
-      cond do
-        checker && function_exported?(checker, :run, 2) ->
-          checker.run(examples, opts)
-
-        true ->
-          built_in_checks(examples, required_fields)
+      if checker && function_exported?(checker, :run, 2) do
+        checker.run(examples, opts)
+      else
+        built_in_checks(examples, required_fields)
       end
 
     metrics = %{
@@ -36,12 +48,24 @@ defmodule Crucible.Stage.DataChecks do
       {:error, {:data_checks_failed, issues}}
     else
       {:ok,
-       %Context{
-         ctx
-         | metrics: Map.put(ctx.metrics, :data_checks, metrics),
-           assigns: Map.put(ctx.assigns, :data_issues, issues)
-       }}
+       ctx
+       |> Context.put_metric(:data_checks, metrics)
+       |> Context.assign(:data_issues, issues)}
     end
+  end
+
+  def run(%Context{} = ctx, _opts) do
+    # No examples in assigns - nothing to check
+    {:ok, ctx}
+  end
+
+  @impl true
+  def describe(opts) do
+    %{
+      stage: :data_checks,
+      description: "Lightweight data validation",
+      required_fields: Map.get(opts, :required_fields, [:input, :output])
+    }
   end
 
   defp built_in_checks(examples, required_fields) do

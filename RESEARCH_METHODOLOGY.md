@@ -1947,10 +1947,15 @@ This methodology provides a rigorous, reproducible framework for LLM reliability
 ## Further Reading
 
 - [GETTING_STARTED.md](./GETTING_STARTED.md) - Installation and first experiment
-- [ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md) - Ensemble strategies in depth
-- [HEDGING_GUIDE.md](./HEDGING_GUIDE.md) - Request hedging theory
-- [STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md) - Using Bench
-- [PUBLICATIONS.md](./PUBLICATIONS.md) - Publication templates
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture overview
+
+### Related Packages
+
+The following guides cover functionality in separate packages:
+
+- **Ensemble strategies** - See `crucible_ensemble` package
+- **Request hedging** - See `crucible_hedging` package
+- **Statistical testing** - See `crucible_bench` package
 
 **References:**
 

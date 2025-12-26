@@ -9,10 +9,6 @@ config :crucible_framework, CrucibleFramework.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
-config :crucible_framework, :enable_repo, true
-
-config :tinkex,
-  api_key: System.get_env("TINKER_API_KEY", "test-key"),
-  base_url: System.get_env("TINKER_BASE_URL", "https://example.invalid")
+config :crucible_framework, :enable_repo, false
 
 config :logger, level: :warning

@@ -4,8 +4,8 @@ defmodule Crucible.Pipeline.RunnerTest do
   # Suppress expected log messages during pipeline execution
   @moduletag capture_log: true
 
-  alias CrucibleIR.{BackendRef, Experiment, StageDef}
   alias Crucible.Pipeline.Runner
+  alias CrucibleIR.{BackendRef, Experiment, StageDef}
 
   defmodule StageOne do
     @behaviour Crucible.Stage

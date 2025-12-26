@@ -6,13 +6,13 @@ defmodule Crucible.Pipeline.Runner do
   require Logger
 
   alias Crucible.{Context, Registry, TraceIntegration}
-  alias CrucibleIR.{Experiment, StageDef}
   alias CrucibleFramework.Persistence
+  alias CrucibleIR.{Experiment, StageDef}
 
   @doc """
   Runs an experiment, optionally persisting run state.
   """
-  @spec run(Experiment.t(), keyword()) :: {:ok, Context.t()} | {:error, {atom(), term()}}
+  @spec run(Experiment.t(), keyword()) :: {:ok, Context.t()} | {:error, term()}
   def run(%Experiment{} = experiment, opts \\ []) do
     run_id = Keyword.get(opts, :run_id, Ecto.UUID.generate())
     persist? = Keyword.get(opts, :persist, true)
@@ -32,38 +32,36 @@ defmodule Crucible.Pipeline.Runner do
     result =
       Enum.reduce_while(experiment.pipeline, {:ok, ctx}, fn %StageDef{} = stage_def,
                                                             {:ok, ctx_acc} ->
-        case resolve_stage(stage_def) do
-          {:ok, mod} ->
-            log_stage(stage_def.name)
-
-            # Emit trace event for stage start
-            ctx_acc =
-              TraceIntegration.emit_stage_start(ctx_acc, stage_def.name, stage_def.options)
-
-            case mod.run(ctx_acc, stage_def.options) do
-              {:ok, new_ctx} ->
-                # Mark stage as completed
-                new_ctx = Context.mark_stage_complete(new_ctx, stage_def.name)
-
-                # Emit trace event for stage completion
-                new_ctx =
-                  TraceIntegration.emit_stage_complete(new_ctx, stage_def.name, new_ctx.metrics)
-
-                {:cont, {:ok, new_ctx}}
-
-              {:error, reason} ->
-                # Emit trace event for stage failure
-                ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
-                {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
-            end
-
-          {:error, reason} ->
-            ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
-            {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
-        end
+        run_stage(stage_def, ctx_acc)
       end)
 
     finalize(result, run_record)
+  end
+
+  defp run_stage(%StageDef{} = stage_def, ctx_acc) do
+    case resolve_stage(stage_def) do
+      {:ok, mod} ->
+        log_stage(stage_def.name)
+        ctx_acc = TraceIntegration.emit_stage_start(ctx_acc, stage_def.name, stage_def.options)
+        execute_stage(mod, stage_def, ctx_acc)
+
+      {:error, reason} ->
+        ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
+        {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
+    end
+  end
+
+  defp execute_stage(mod, stage_def, ctx_acc) do
+    case mod.run(ctx_acc, stage_def.options) do
+      {:ok, new_ctx} ->
+        new_ctx = Context.mark_stage_complete(new_ctx, stage_def.name)
+        new_ctx = TraceIntegration.emit_stage_complete(new_ctx, stage_def.name, new_ctx.metrics)
+        {:cont, {:ok, new_ctx}}
+
+      {:error, reason} ->
+        ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
+        {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
+    end
   end
 
   defp build_context(experiment, run_id, opts) do

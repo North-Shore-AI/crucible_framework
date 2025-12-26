@@ -2,46 +2,47 @@
 
 # CrucibleFramework
 
-**A reliability-first experiment engine for LLM training and evaluation**
+**Thin orchestration layer for ML experiment pipelines**
 
 [![Elixir](https://img.shields.io/badge/elixir-1.14+-purple.svg)](https://elixir-lang.org)
 [![OTP](https://img.shields.io/badge/otp-25+-blue.svg)](https://www.erlang.org)
-[![Hex.pm](https://img.shields.io/hexpm/v/crucible_framework.svg)](https://hex.pm/packages/crucible_framework)
-[![Documentation](https://img.shields.io/badge/docs-hexdocs-purple.svg)](https://hexdocs.pm/crucible_framework)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/North-Shore-AI/crucible_framework/blob/main/LICENSE)
 
 ---
 
-## What's New (v0.4.0 - 2025-12-23)
+## What's New (v0.4.0 - 2025-12-25)
 
-- **BREAKING**: Now depends on `crucible_ir` package for shared IR structs across the Crucible ecosystem
-- **Backwards Compatibility**: `Crucible.IR.*` aliases provided for smooth migration (deprecated in v1.0.0)
-- **Unified IR**: All component libraries now share the same IR definitions via `crucible_ir`
-- **Field Renames**: Ensemble `members` → `models`, Hedging `max_extra_requests` → `max_hedges`
-- Enhanced Context Ergonomics: 20+ helper functions for common context operations
-- Pre-Flight Validation: New `Stage.Validate` for early detection of configuration errors
-- Stage Tracking: Automatic tracking of completed stages in pipeline execution
+- **BREAKING**: Simplified to pure orchestration layer (~2,000 LOC from ~5,300 LOC)
+- **Removed**: Backend infrastructure (moved to crucible_train)
+- **Removed**: Data loading stages (domain-specific)
+- **Removed**: Analysis adapters (domain-specific)
+- **Removed**: Fairness stages (moved to ExFairness)
+- **Removed**: BackendCall stage (moved to crucible_train)
+- **Simplified**: Context struct with Phoenix-style `assigns` for domain data
+- **Updated**: crucible_ir ~> 0.2.0 with new Training/Deployment/Feedback IR
 
-See [CHANGELOG.md](CHANGELOG.md) for complete migration guide.
+## Purpose
 
-## Previous Releases
+CrucibleFramework provides:
 
-**v0.3.0 (2025-11-23):**
-- Declarative Experiment IR (`Crucible.IR.*`) that fully describes datasets, stages, backends, and outputs
-- Stage-based pipeline runner (`Crucible.Pipeline.Runner`) with built-in stages for the full ML lifecycle
-- Backend behaviour plus a mockable Tinkex implementation for LoRA training and sampling
-- Persistence layer (Ecto/Postgres) for experiments, runs, and artifacts
+- **Pipeline Execution** - Sequential stage execution with Context threading
+- **Stage Behaviour** - Clean interface for composable pipeline stages
+- **Optional Persistence** - Ecto-backed experiment run tracking
+- **Telemetry Integration** - Event emission for observability
+
+This library focuses purely on orchestration. Domain-specific functionality belongs in specialized packages:
+
+| Domain | Package |
+|--------|---------|
+| Training | crucible_train (future) |
+| CNS Dialectics | cns_crucible |
+| Fairness | ExFairness |
+| XAI | crucible_xai |
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-- Elixir >= 1.14 / OTP >= 25
-- Local PostgreSQL (listening on `localhost:5432`)
-- (Optional) `TINKER_API_KEY` for live Tinkex runs
-
-### Install from Hex
 ```elixir
 def deps do
   [
@@ -50,461 +51,163 @@ def deps do
 end
 ```
 
-### 1) Bootstrap the database (dev + test)
-```bash
-./scripts/setup_db.sh
-```
-
-### 2) Run the suite
-```bash
-mix test                  # unit suite
-MIX_ENV=test mix test --include integration  # includes persistence tests
-```
-
-### 3) Run the live Tinkex demo
-```bash
-export TINKER_API_KEY=your_key
-mix run examples/tinkex_live.exs
-```
-
----
-
-## Architecture Overview
-
-CrucibleFramework is the **reliability engine** at the center of the North-Shore-AI experiment infrastructure. It provides a backend-agnostic IR (Intermediate Representation) that describes experiments declaratively, allowing them to be executed through configurable pipeline stages.
-
-```
-          ┌────────────────────────────┐
-          │  SURFACES / CLIENT APPS    │
-          │                            │
-          │  • cns_crucible            │
-          │  • LiveView / Phoenix UI   │
-          │  • Python SDK / notebooks  │
-          │  • CLI (mix tasks)         │
-          └──────────────┬─────────────┘
-                         │  (Experiment IR)
-          ┌──────────────▼─────────────┐
-          │  CRUCIBLE RELIABILITY CORE │
-          │                            │
-          │  • crucible_framework      │
-          │  • crucible_ensemble       │
-          │  • crucible_hedging        │
-          │  • crucible_bench          │
-          │  • crucible_trace          │
-          └──────────────┬─────────────┘
-                         │  (Backend behaviour)
-      ┌──────────────────┼────────────────────────────┐
-      │                  │                            │
-┌─────▼─────┐      ┌─────▼─────┐              ┌───────▼──────┐
-│ Tinkex    │      │ NxLocal   │              │ External LLM │
-│ backend   │      │ backend   │              │ backends     │
-│ (LoRA)    │      │ (Axon/Nx) │              │ (OpenAI, etc)│
-└───────────┘      └───────────┘              └──────────────┘
-```
-
-**Key insight**: Tinkex is "just" the first implementation of `Crucible.Backend`. CNS experiments are "just" the first client of the IR. The architecture scales to any backend and any experiment type.
-
----
-
-## The Experiment IR
-
-The Experiment IR is the **canonical contract** between all surfaces (CLI, Python SDK, LiveView), the engine, backends, and domain libraries. It's designed to be:
-
-- **Backend-agnostic**: No assumptions about infrastructure
-- **Serializable**: Can be stored, transmitted, and inspected
-- **Composable**: Stages are plugins, not hardcoded
-
-### Core IR Structs
-
-```
-lib/crucible/ir/
-├── experiment.ex        # Top-level experiment definition
-├── dataset_ref.ex       # Logical reference to a dataset
-├── backend_ref.ex       # Logical reference to a backend
-├── stage_def.ex         # Pipeline stage definition
-├── reliability_config.ex # Ensemble, hedging, guardrails, stats, fairness
-├── ensemble_config.ex   # Multi-model voting configuration
-├── hedging_config.ex    # Request hedging configuration
-├── guardrail_config.ex  # Safety/guardrail configuration
-├── stats_config.ex      # Statistical testing configuration
-├── fairness_config.ex   # Fairness evaluation configuration
-└── output_spec.ex       # Output artifact specification
-```
-
-### IR Design Principles
-
-From the design spec (`001_crucible_long_term_plan.md`):
-
-1. **One experiment engine** - Everything plugs into Crucible via clean extension points
-2. **Stages are behaviours** - Each stage implements the `Crucible.Stage` behaviour
-3. **Backends are location-independent** - Can be in-process, another BEAM node, or a remote API
-4. **No single-node assumptions** - IR never talks about nodes/hosts
-
-### Complete IR Example
+### Define and Run an Experiment
 
 ```elixir
-alias Crucible.IR.{
-  Experiment, DatasetRef, BackendRef, StageDef, ReliabilityConfig,
-  EnsembleConfig, HedgingConfig, GuardrailConfig, StatsConfig,
-  FairnessConfig, OutputSpec
-}
-
-experiment = %Experiment{
-  id: "cns_scifact_tinkex_v1",
-  description: "CNS claim extraction on SciFact via Tinkex LoRA backend",
-  tags: ["cns", "scifact", "tinkex"],
-
-  dataset: %DatasetRef{
-    provider: :crucible_datasets,
-    name: "scifact_claims",
-    split: :train,
-    options: %{limit: 1000, batch_size: 4}
-  },
-
+experiment = %CrucibleIR.Experiment{
+  id: "my-experiment",
+  backend: %CrucibleIR.BackendRef{id: :my_backend},
   pipeline: [
-    %StageDef{name: :data_load},
-    %StageDef{name: :data_checks, options: %{required_fields: [:input, :output]}},
-    %StageDef{name: :guardrails},
-    %StageDef{name: :backend_call, options: %{mode: :train}},
-    %StageDef{name: :analysis_surrogate_validation},
-    %StageDef{name: :analysis_tda_validation},
-    %StageDef{name: :analysis_metrics},
-    %StageDef{name: :bench},
-    %StageDef{name: :report}
-  ],
-
-  backend: %BackendRef{
-    id: :tinkex,
-    profile: :lora_finetune,
-    options: %{base_model: "meta-llama/Llama-3.2-1B", lora_rank: 8}
-  },
-
-  reliability: %ReliabilityConfig{
-    ensemble: %EnsembleConfig{strategy: :none},
-    hedging: %HedgingConfig{strategy: :off},
-    guardrails: %GuardrailConfig{profiles: [:default]},
-    stats: %StatsConfig{tests: [:bootstrap, :mann_whitney], alpha: 0.05},
-    fairness: %FairnessConfig{enabled: false}
-  },
-
-  outputs: [
-    %OutputSpec{name: :metrics_report, formats: [:markdown, :json], sink: :file}
+    %CrucibleIR.StageDef{name: :validate},
+    %CrucibleIR.StageDef{name: :data_checks},
+    %CrucibleIR.StageDef{name: :bench},
+    %CrucibleIR.StageDef{name: :report}
   ]
 }
+
+{:ok, ctx} = CrucibleFramework.run(experiment)
 ```
 
 ---
 
-## Pipeline Stages
+## Core Modules
 
-The pipeline is executed by `Crucible.Pipeline.Runner`, which iterates through stages and threads a `Crucible.Context` through each.
+### Crucible.Context
 
-### Built-in Stages
-
-| Stage | Module | Purpose |
-|-------|--------|---------|
-| `:data_load` | `Crucible.Stage.DataLoad` | Stream and batch dataset |
-| `:data_checks` | `Crucible.Stage.DataChecks` | Schema validation |
-| `:guardrails` | `Crucible.Stage.Guardrails` | Safety scanning (LlmGuard integration) |
-| `:backend_call` | `Crucible.Stage.BackendCall` | Training/sampling via backend |
-| `:analysis_surrogate_validation` | `Crucible.Stage.Analysis.SurrogateValidation` | Surrogate topology checks (wired by integration app) |
-| `:analysis_tda_validation` | `Crucible.Stage.Analysis.TDAValidation` | Full TDA analysis (wired by integration app) |
-| `:analysis_metrics` | `Crucible.Stage.Analysis.Metrics` | Quality metrics (wired by integration app) |
-| `:analysis_filter` | `Crucible.Stage.Analysis.Filter` | Filter outputs by surrogate scores |
-| `:bench` | `Crucible.Stage.Bench` | Statistical testing |
-| `:report` | `Crucible.Stage.Report` | Generate output artifacts |
-
-### Stage Behaviour
-
-Every stage implements `Crucible.Stage`:
+Runtime context threaded through pipeline stages. Uses Phoenix-style `assigns` for domain-specific data:
 
 ```elixir
-defmodule Crucible.Stage do
-  alias Crucible.Context
+ctx = %Crucible.Context{
+  experiment_id: "exp-1",
+  run_id: "run-1",
+  experiment: experiment
+}
 
-  @callback run(context :: Context.t(), opts :: map()) ::
-              {:ok, Context.t()} | {:error, term()}
+# Add metrics
+ctx = Crucible.Context.put_metric(ctx, :accuracy, 0.95)
 
-  @callback describe(opts :: map()) :: map()
-  @optional_callbacks describe: 1
-end
+# Store domain data in assigns (training stages, CNS stages, etc.)
+ctx = Crucible.Context.assign(ctx, :dataset, my_data)
+ctx = Crucible.Context.assign(ctx, :backend_session, session)
+ctx = Crucible.Context.assign(ctx, :snos, extracted_snos)
+
+# Track stage completion
+ctx = Crucible.Context.mark_stage_complete(ctx, :data_load)
 ```
 
-### Custom Stages
+### Context Helper Functions
 
-Create domain-specific stages by implementing the behaviour:
+| Category | Functions |
+|----------|-----------|
+| Metrics | `put_metric/3`, `get_metric/3`, `update_metric/3`, `merge_metrics/2`, `has_metric?/2` |
+| Outputs | `add_output/2`, `add_outputs/2` |
+| Artifacts | `put_artifact/3`, `get_artifact/3`, `has_artifact?/2` |
+| Assigns | `assign/2`, `assign/3` |
+| Stages | `mark_stage_complete/2`, `stage_completed?/2`, `completed_stages/1` |
+
+### Crucible.Stage
+
+Behaviour for pipeline stages:
 
 ```elixir
-defmodule MyApp.Stage.CustomValidation do
+defmodule MyApp.Stage.CustomStage do
   @behaviour Crucible.Stage
 
   @impl true
   def run(%Crucible.Context{} = ctx, opts) do
-    # Transform context, add metrics, etc.
-    {:ok, %{ctx | metrics: Map.put(ctx.metrics, :custom, my_metrics)}}
+    # Do work, update ctx
+    {:ok, updated_ctx}
+  end
+
+  @impl true
+  def describe(opts) do
+    %{stage: :custom, description: "My custom stage"}
   end
 end
 ```
 
----
+### Built-in Stages
 
-## Backend Behaviour
+| Stage | Purpose |
+|-------|---------|
+| `Crucible.Stage.Validate` | Pre-flight pipeline validation |
+| `Crucible.Stage.DataChecks` | Lightweight data validation (reads from `assigns[:examples]`) |
+| `Crucible.Stage.Guardrails` | Safety checks via adapters |
+| `Crucible.Stage.Bench` | Statistical analysis (crucible_bench) |
+| `Crucible.Stage.Report` | Output generation |
 
-Backends abstract training and inference. The `Crucible.Backend` behaviour defines:
+### Crucible.Registry
 
-```elixir
-defmodule Crucible.Backend do
-  @callback init(backend_id, backend_config) :: {:ok, backend_state} | {:error, term()}
-  @callback start_session(backend_state, Experiment.t()) :: {:ok, session} | {:error, term()}
-  @callback train_step(session, batch) :: {:ok, %{loss: float(), ...}} | {:error, term()}
-  @callback save_checkpoint(session, step) :: {:ok, checkpoint_ref} | {:error, term()}
-  @callback create_sampler(session, checkpoint_ref) :: {:ok, sampler} | {:error, term()}
-  @callback sample(sampler, prompt, opts) :: {:ok, [binary()]} | {:error, term()}
-end
-```
-
-### Tinkex Backend
-
-`Crucible.Backend.Tinkex` implements this behaviour, delegating to the Tinkex SDK for LoRA fine-tuning and sampling.
-
----
-
-## Runtime Context
-
-The `Crucible.Context` struct is threaded through all pipeline stages:
+Stage module resolution from config:
 
 ```elixir
-%Crucible.Context{
-  experiment_id: "cns_scifact_v1",
-  run_id: "abc-123",
-  experiment: %Experiment{...},
-
-  # Data
-  dataset: loaded_data,
-  batches: stream_of_batches,
-  examples: list_of_examples,
-
-  # Backend state
-  backend_sessions: %{tinkex: session_pid},
-  backend_state: %{},
-
-  # Results
-  outputs: [generated_outputs],
-  metrics: %{cns: %{...}, bench: %{...}},
-  artifacts: %{report: "path/to/report.md"},
-
-  # Observability
-  trace: trace_chain,
-  telemetry_context: %{},
-
-  # Extension point
-  assigns: %{custom_data: ...}
-}
-```
-
----
-
-## Crucible Component Libraries
-
-CrucibleFramework integrates with specialized reliability libraries:
-
-### crucible_ensemble
-Multi-model voting for increased reliability:
-- **Strategies**: Majority vote, weighted vote, best confidence, unanimous
-- **Expected improvement**: 96-99% accuracy vs 89-92% single model
-
-### crucible_hedging
-Tail latency reduction via request hedging:
-- **Strategies**: Fixed delay, percentile-based, adaptive
-- **Expected improvement**: 50-75% P99 latency reduction
-
-### crucible_bench
-Statistical testing for publication-quality results:
-- **Tests**: t-tests, ANOVA, Mann-Whitney, Wilcoxon, bootstrap
-- **Effect sizes**: Cohen's d, eta-squared
-- **Power analysis**: Built-in
-
-### crucible_trace
-Causal transparency and decision provenance:
-- **Visualization**: Interactive HTML trace viewer
-- **Integration**: Automatic stage event emission
-
----
-
-## CNS Integration: The "Hello World" Experiment
-
-The CNS (Chiral Narrative Synthesis) SciFact experiment demonstrates the full integration. This is the canonical example of using CrucibleFramework.
-
-### Data Flow
-
-```
-┌─────────────────┐
-│  SciFact JSONL  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   DataLoad      │  Load and batch dataset
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   DataChecks    │  Validate required fields
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Guardrails    │  LlmGuard security checks
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   BackendCall   │  Tinkex LoRA training
-│   (Tinkex)      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ CNSSurrogate    │  β₁ and fragility surrogates
-│ Validation      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ CNSTdaValidation│  Full TDA (if enabled)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   CNSMetrics    │  Schema, citation, topology, chirality
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Bench         │  Statistical analysis
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Report        │  Generate outputs
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Markdown/JSON  │
-└─────────────────┘
-```
-
-### IR Flow Through the System
-
-1. **Surface layer** (`cns_crucible`): Builds `%Experiment{}` IR with CNS-specific configuration
-2. **Engine** (`crucible_framework`): Receives IR, resolves stages, executes pipeline
-3. **Stages**: Transform `%Context{}`, call adapters, accumulate metrics
-4. **Backend** (`Crucible.Backend.Tinkex`): Handles actual Tinkex API calls
-5. **Adapters** (`CnsExperiments.Adapters.*`): Bridge CNS metrics into Crucible stages
-
-### Running the Experiment
-
-```elixir
-# Via cns_crucible
-CnsExperiments.Experiments.ScifactClaimExtraction.run(
-  batch_size: 4,
-  limit: 100,
-  base_model: "meta-llama/Llama-3.2-1B"
-)
-
-# Or directly with IR
-{:ok, ctx} = CrucibleFramework.run(experiment)
-IO.inspect(ctx.metrics.cns, label: "CNS Metrics")
-```
-
----
-
-## Adapter Architecture
-
-CrucibleFramework defines adapter behaviours for pluggable evaluation:
-
-### Analysis Adapters
-
-```elixir
-# lib/crucible/analysis/adapter.ex
-defmodule Crucible.Analysis.Adapter do
-  @callback evaluate(examples, outputs, opts) :: {:ok, map()} | {:error, term()}
-end
-
-# lib/crucible/analysis/surrogate_adapter.ex
-defmodule Crucible.Analysis.SurrogateAdapter do
-  @callback compute_surrogates(examples, outputs, opts) :: {:ok, map()} | {:error, term()}
-end
-
-# lib/crucible/analysis/tda_adapter.ex
-defmodule Crucible.Analysis.TdaAdapter do
-  @callback compute_tda(snos, opts) :: {:ok, map()} | {:error, term()}
-end
-```
-
-Configure adapters in `config/config.exs`:
-
-```elixir
+# In config.exs
 config :crucible_framework,
-  analysis_adapter: CnsExperiments.Adapters.Metrics,
-  analysis_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
-  analysis_tda_adapter: CnsExperiments.Adapters.TDA
-```
-
----
-
-## Persistence
-
-CrucibleFramework includes optional Ecto/Postgres persistence:
-
-```elixir
-# Schemas
-CrucibleFramework.Persistence.ExperimentRecord
-CrucibleFramework.Persistence.RunRecord
-CrucibleFramework.Persistence.ArtifactRecord
-
-# Usage
-{:ok, ctx} = CrucibleFramework.run(experiment, persist: true)
-```
-
----
-
-## Configuration Reference
-
-### Full Config Example
-
-```elixir
-# config/config.exs
-config :crucible_framework,
-  # Stage registry
   stage_registry: %{
-    data_load: Crucible.Stage.DataLoad,
+    validate: Crucible.Stage.Validate,
+    bench: Crucible.Stage.Bench,
+    my_stage: MyApp.Stage.Custom
+  }
+```
+
+---
+
+## Architecture
+
+```
+CrucibleFramework.run(experiment)
+    |
+    v
+Crucible.Pipeline.Runner
+    |
+    +-> Stage 1: Validate
+    +-> Stage 2: CustomDataLoader (domain-specific)
+    +-> Stage 3: CustomBackendCall (domain-specific)
+    +-> Stage 4: Bench
+    +-> Stage 5: Report
+    |
+    v
+{:ok, final_context}
+```
+
+### Domain-Specific Stages
+
+Training, CNS, and other domain-specific stages should be implemented in their respective packages and registered via config:
+
+```elixir
+# crucible_train would provide:
+config :crucible_framework,
+  stage_registry: %{
+    data_load: CrucibleTrain.Stage.DataLoad,
+    backend_call: CrucibleTrain.Stage.BackendCall,
+    # ...
+  }
+
+# cns_crucible would provide:
+config :crucible_framework,
+  stage_registry: %{
+    cns_extract: CnsCrucible.Stage.SNOExtraction,
+    cns_topology: CnsCrucible.Stage.TopologyAnalysis,
+    # ...
+  }
+```
+
+---
+
+## Configuration
+
+```elixir
+config :crucible_framework,
+  ecto_repos: [CrucibleFramework.Repo],
+  enable_repo: true,  # Set false to disable persistence
+  stage_registry: %{
+    validate: Crucible.Stage.Validate,
     data_checks: Crucible.Stage.DataChecks,
     guardrails: Crucible.Stage.Guardrails,
-    backend_call: Crucible.Stage.BackendCall,
-    analysis_metrics: Crucible.Stage.Analysis.Metrics,
-    analysis_surrogate_validation: Crucible.Stage.Analysis.SurrogateValidation,
-    analysis_tda_validation: Crucible.Stage.Analysis.TDAValidation,
-    analysis_filter: Crucible.Stage.Analysis.Filter,
     bench: Crucible.Stage.Bench,
     report: Crucible.Stage.Report
   },
-
-  # Backend registry
-  backend_registry: %{
-    tinkex: Crucible.Backend.Tinkex
-  },
-
-  # Adapters
-  analysis_adapter: CnsExperiments.Adapters.Metrics,
-  analysis_surrogate_adapter: CnsExperiments.Adapters.Surrogates,
-  analysis_tda_adapter: CnsExperiments.Adapters.TDA,
-  guardrail_adapter: Crucible.Stage.Guardrails.Noop,
-
-  # Persistence
-  ecto_repos: [CrucibleFramework.Repo],
-  enable_repo: true
+  guardrail_adapter: Crucible.Stage.Guardrails.Noop
 
 config :crucible_framework, CrucibleFramework.Repo,
   database: "crucible_dev",
@@ -515,28 +218,27 @@ config :crucible_framework, CrucibleFramework.Repo,
 
 ---
 
+## Dependencies
+
+- **crucible_ir** - Shared experiment IR structs (v0.2.0+)
+- **crucible_bench** - Statistical testing
+- **crucible_trace** - Causal reasoning traces
+
+---
+
 ## Development
 
-### Prerequisites
-- Elixir 1.14+
-- OTP 25+
-- PostgreSQL
-
-### Setup
 ```bash
-git clone https://github.com/North-Shore-AI/crucible_framework.git
-cd crucible_framework
-mix deps.get
-./scripts/setup_db.sh
+# Setup
+mix deps.get && mix compile
+
+# Tests
 mix test
-```
 
-### Testing
-```bash
-mix test                              # Unit tests
-mix test --include integration        # Integration tests
-mix test --cover                      # Coverage
-mix dialyzer                          # Static analysis
+# Quality checks
+mix format
+mix credo --strict
+mix dialyzer
 ```
 
 ---
@@ -545,13 +247,11 @@ mix dialyzer                          # Static analysis
 
 | Repository | Purpose |
 |------------|---------|
-| [cns](https://github.com/North-Shore-AI/cns) | Core CNS dialectical reasoning library |
-| [cns_crucible](https://github.com/North-Shore-AI/cns_crucible) | CNS + Crucible integration harness |
-| [tinkex](https://github.com/North-Shore-AI/tinkex) | Tinker SDK for LoRA training |
-| [crucible_ensemble](https://github.com/North-Shore-AI/crucible_ensemble) | Multi-model voting |
-| [crucible_hedging](https://github.com/North-Shore-AI/crucible_hedging) | Request hedging |
+| [crucible_ir](https://github.com/North-Shore-AI/crucible_ir) | Shared IR structs |
 | [crucible_bench](https://github.com/North-Shore-AI/crucible_bench) | Statistical testing |
 | [crucible_trace](https://github.com/North-Shore-AI/crucible_trace) | Causal transparency |
+| [cns](https://github.com/North-Shore-AI/cns) | CNS dialectical reasoning |
+| [cns_crucible](https://github.com/North-Shore-AI/cns_crucible) | CNS + Crucible integration |
 
 ---
 

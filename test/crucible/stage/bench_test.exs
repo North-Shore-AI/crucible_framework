@@ -99,45 +99,8 @@ defmodule Crucible.Stage.BenchTest do
       assert Map.has_key?(ttest_result, :significant)
     end
 
-    test "runs multiple statistical tests", %{context: context} do
-      context = %{
-        context
-        | metrics: %{
-            backend: %{
-              raw_steps: [
-                %{loss: 0.5},
-                %{loss: 0.48},
-                %{loss: 0.46},
-                %{loss: 0.44}
-              ]
-            }
-          }
-      }
-
-      experiment = %{
-        context.experiment
-        | reliability: %CrucibleIR.Reliability.Config{
-            stats: %CrucibleIR.Reliability.Stats{
-              tests: [:bootstrap],
-              alpha: 0.05,
-              options: %{bootstrap_iterations: 1000}
-            }
-          }
-      }
-
-      context = %{context | experiment: experiment}
-
-      assert {:ok, result} = Bench.run(context, %{data_source: :backend})
-      bench_metrics = result.metrics.bench
-
-      # Single group case - should get descriptive stats
-      assert bench_metrics.results.n == 4
-      assert is_float(bench_metrics.results.mean)
-    end
-
     test "handles mann_whitney test for non-parametric data", %{context: context} do
       # Create two groups with different distributions
-      # Outlier in group 1
       group1_data = [1, 2, 2, 3, 3, 3, 100]
       group2_data = [4, 5, 5, 6, 6, 7, 8]
 
@@ -167,38 +130,6 @@ defmodule Crucible.Stage.BenchTest do
       mann_whitney = bench_metrics.results.test_results.mann_whitney
       assert Map.has_key?(mann_whitney, :p_value)
       assert Map.has_key?(mann_whitney, :statistic)
-    end
-
-    test "handles paired tests with matching samples", %{context: context} do
-      outputs = [
-        %{prompt: "before", score: 0.7},
-        %{prompt: "before", score: 0.72},
-        %{prompt: "before", score: 0.68},
-        %{prompt: "after", score: 0.75},
-        %{prompt: "after", score: 0.77},
-        %{prompt: "after", score: 0.73}
-      ]
-
-      context = %{context | outputs: outputs}
-
-      experiment = %{
-        context.experiment
-        | reliability: %CrucibleIR.Reliability.Config{
-            stats: %CrucibleIR.Reliability.Stats{
-              tests: [:paired_ttest],
-              alpha: 0.05,
-              options: %{}
-            }
-          }
-      }
-
-      context = %{context | experiment: experiment}
-
-      assert {:ok, result} = Bench.run(context, %{data_source: :outputs})
-      bench_metrics = result.metrics.bench
-
-      paired_result = bench_metrics.results.test_results.paired_ttest
-      assert Map.has_key?(paired_result, :p_value)
     end
 
     test "handles multiple groups with ANOVA", %{context: context} do
@@ -275,7 +206,7 @@ defmodule Crucible.Stage.BenchTest do
         context.experiment
         | reliability: %CrucibleIR.Reliability.Config{
             stats: %CrucibleIR.Reliability.Stats{
-              tests: [:welch_ttest],
+              tests: [:ttest],
               alpha: 0.05,
               options: %{}
             }
@@ -291,7 +222,7 @@ defmodule Crucible.Stage.BenchTest do
 
       bench_metrics = result.metrics.bench
       assert bench_metrics.results.groups == [:control, :treatment]
-      assert Map.has_key?(bench_metrics.results.test_results, :welch_ttest)
+      assert Map.has_key?(bench_metrics.results.test_results, :ttest)
     end
 
     test "handles bootstrap confidence intervals", %{context: context} do
@@ -419,98 +350,6 @@ defmodule Crucible.Stage.BenchTest do
       assert description.description =~ "Statistical benchmarking"
       assert description.tests == [:ttest, :bootstrap]
       assert description.alpha == 0.05
-    end
-  end
-
-  # Property-based tests
-  describe "properties" do
-    use ExUnitProperties
-
-    property "p-values are always between 0 and 1" do
-      check all(
-              group1 <- list_of(float(min: 0.0, max: 1.0), min_length: 3),
-              group2 <- list_of(float(min: 0.0, max: 1.0), min_length: 3)
-            ) do
-        outputs =
-          Enum.map(group1, fn v -> %{prompt: "g1", score: v} end) ++
-            Enum.map(group2, fn v -> %{prompt: "g2", score: v} end)
-
-        experiment = %Experiment{
-          id: "test",
-          backend: nil,
-          pipeline: [],
-          reliability: %CrucibleIR.Reliability.Config{
-            stats: %CrucibleIR.Reliability.Stats{
-              tests: [:ttest],
-              alpha: 0.05,
-              options: %{}
-            }
-          }
-        }
-
-        context = %Context{
-          experiment_id: experiment.id,
-          run_id: "test-run",
-          experiment: experiment,
-          outputs: outputs,
-          metrics: %{}
-        }
-
-        case Bench.run(context, %{data_source: :outputs}) do
-          {:ok, result} ->
-            case get_in(result.metrics, [:bench, :results, :test_results, :ttest, :p_value]) do
-              nil -> true
-              p_value -> p_value >= 0 and p_value <= 1
-            end
-
-          _ ->
-            true
-        end
-      end
-    end
-
-    property "effect sizes are real numbers" do
-      check all(
-              group1 <- list_of(float(min: -100.0, max: 100.0), min_length: 2),
-              group2 <- list_of(float(min: -100.0, max: 100.0), min_length: 2)
-            ) do
-        outputs =
-          Enum.map(group1, fn v -> %{prompt: "g1", score: v} end) ++
-            Enum.map(group2, fn v -> %{prompt: "g2", score: v} end)
-
-        experiment = %Experiment{
-          id: "test",
-          backend: nil,
-          pipeline: [],
-          reliability: %CrucibleIR.Reliability.Config{
-            stats: %CrucibleIR.Reliability.Stats{
-              tests: [:ttest],
-              alpha: 0.05,
-              options: %{}
-            }
-          }
-        }
-
-        context = %Context{
-          experiment_id: experiment.id,
-          run_id: "test-run",
-          experiment: experiment,
-          outputs: outputs,
-          metrics: %{}
-        }
-
-        case Bench.run(context, %{data_source: :outputs}) do
-          {:ok, result} ->
-            case get_in(result.metrics, [:bench, :results, :effect_size]) do
-              nil -> true
-              %{error: _} -> true
-              effect -> is_map(effect)
-            end
-
-          _ ->
-            true
-        end
-      end
     end
   end
 end

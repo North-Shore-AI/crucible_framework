@@ -5,16 +5,17 @@ defmodule Crucible.Stage.DataChecksTest do
   alias Crucible.Stage.DataChecks
 
   test "flags missing required fields" do
-    ctx = %Context{
-      experiment_id: "exp",
-      run_id: "run",
-      experiment: %CrucibleIR.Experiment{
-        id: "exp",
-        backend: %CrucibleIR.BackendRef{id: :tinkex},
-        pipeline: []
-      },
-      examples: [%{input: "a"}, %{input: "b", output: "c"}]
-    }
+    ctx =
+      %Context{
+        experiment_id: "exp",
+        run_id: "run",
+        experiment: %CrucibleIR.Experiment{
+          id: "exp",
+          backend: %CrucibleIR.BackendRef{id: :tinkex},
+          pipeline: []
+        }
+      }
+      |> Context.assign(:examples, [%{input: "a"}, %{input: "b", output: "c"}])
 
     {:ok, new_ctx} = DataChecks.run(ctx, %{required_fields: [:input, :output]})
 
@@ -23,6 +24,23 @@ defmodule Crucible.Stage.DataChecksTest do
   end
 
   test "fails fast when configured" do
+    ctx =
+      %Context{
+        experiment_id: "exp",
+        run_id: "run",
+        experiment: %CrucibleIR.Experiment{
+          id: "exp",
+          backend: %CrucibleIR.BackendRef{id: :tinkex},
+          pipeline: []
+        }
+      }
+      |> Context.assign(:examples, [%{input: "a"}])
+
+    assert {:error, {:data_checks_failed, _}} =
+             DataChecks.run(ctx, %{required_fields: [:output], fail_fast: true})
+  end
+
+  test "passes when no examples in assigns" do
     ctx = %Context{
       experiment_id: "exp",
       run_id: "run",
@@ -30,11 +48,10 @@ defmodule Crucible.Stage.DataChecksTest do
         id: "exp",
         backend: %CrucibleIR.BackendRef{id: :tinkex},
         pipeline: []
-      },
-      examples: [%{input: "a"}]
+      }
     }
 
-    assert {:error, {:data_checks_failed, _}} =
-             DataChecks.run(ctx, %{required_fields: [:output], fail_fast: true})
+    {:ok, new_ctx} = DataChecks.run(ctx, %{})
+    assert new_ctx == ctx
   end
 end

@@ -6,8 +6,8 @@ defmodule Crucible.Stage.Report do
   @behaviour Crucible.Stage
 
   alias Crucible.Context
-  alias CrucibleIR.OutputSpec
   alias CrucibleFramework.Persistence
+  alias CrucibleIR.OutputSpec
   require Logger
 
   @impl true
@@ -46,15 +46,17 @@ defmodule Crucible.Stage.Report do
           %{format: other, body: "Unsupported format #{other}"}
       end
     end)
-    |> tap(fn entries ->
-      if spec.sink == :stdout do
-        Enum.each(entries, fn %{format: fmt, body: body} ->
-          IO.puts("== #{spec.name} (#{fmt}) ==")
-          IO.puts(body)
-        end)
-      end
+    |> tap(&maybe_print_to_stdout(&1, spec))
+  end
+
+  defp maybe_print_to_stdout(entries, %OutputSpec{sink: :stdout} = spec) do
+    Enum.each(entries, fn %{format: fmt, body: body} ->
+      IO.puts("== #{spec.name} (#{fmt}) ==")
+      IO.puts(body)
     end)
   end
+
+  defp maybe_print_to_stdout(_entries, _spec), do: :ok
 
   defp maybe_persist(%OutputSpec{sink: :file} = spec, rendered, %Context{} = ctx) do
     for %{format: fmt, body: body} <- rendered do

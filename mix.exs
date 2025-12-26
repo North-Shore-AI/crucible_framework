@@ -19,14 +19,18 @@ defmodule CrucibleFramework.MixProject do
       package: package(),
       name: "CrucibleFramework",
       source_url: @source_url,
-      homepage_url: @source_url
+      homepage_url: @source_url,
+      dialyzer: [
+        plt_add_apps: [:ex_unit, :mix],
+        flags: [:error_handling, :underspecs]
+      ]
     ]
   end
 
   def application do
     [
       mod: {CrucibleFramework.Application, []},
-      extra_applications: [:logger, :crypto, :telemetry, :runtime_tools]
+      extra_applications: [:logger, :telemetry]
     ]
   end
 
@@ -35,40 +39,33 @@ defmodule CrucibleFramework.MixProject do
 
   defp deps do
     [
-      # Shared IR
-      {:crucible_ir, "~> 0.1.1"},
+      # Core IR (shared experiment definitions)
+      {:crucible_ir, "~> 0.2.0"},
 
-      # Component Libraries
-      {:crucible_ensemble, path: "../crucible_ensemble"},
-      {:crucible_hedging, path: "../crucible_hedging"},
-      {:crucible_bench, path: "../crucible_bench"},
-      {:crucible_trace, path: "../crucible_trace"},
+      # Reliability libraries (for built-in stage wrappers)
+      {:crucible_bench, "~> 0.3.2"},
+      {:crucible_trace, "~> 0.3.0"},
 
-      # Domain Libraries (optional - for full feature set)
-      {:ex_fairness, path: "../ExFairness", optional: true},
+      # Optional persistence
+      {:ecto_sql, "~> 3.11", optional: true},
+      {:postgrex, ">= 0.0.0", optional: true},
 
-      # Backend Integration
-      {:tinkex, "~> 0.1.12"},
-
-      # Core Dependencies
-      {:ecto_sql, "~> 3.11"},
-      {:postgrex, ">= 0.0.0"},
+      # Core utilities
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.2"},
-      {:nx, "~> 0.7"},
 
       # Development and Testing
       {:mox, "~> 1.1", only: :test},
-      {:stream_data, "~> 1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp description do
     """
-    CrucibleFramework: A scientific platform for LLM reliability research on the BEAM.
-    Provides core library functionality with comprehensive documentation and guides.
+    CrucibleFramework: A thin orchestration layer for experiment pipelines.
+    Provides pipeline execution, stage behaviour, and optional persistence.
     """
   end
 
@@ -79,12 +76,10 @@ defmodule CrucibleFramework.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @source_url,
-      extras: extras(),
-      groups_for_extras: groups_for_extras(),
       assets: %{"assets" => "assets"},
       logo: "assets/crucible_framework.svg",
-      before_closing_head_tag: &mermaid_head/1,
-      before_closing_body_tag: &mermaid_body/1
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
     ]
   end
 
@@ -93,24 +88,10 @@ defmodule CrucibleFramework.MixProject do
       "README.md",
       "GETTING_STARTED.md",
       "ARCHITECTURE.md",
-      "RESEARCH_METHODOLOGY.md",
-      "ENSEMBLE_GUIDE.md",
-      "HEDGING_GUIDE.md",
-      "STATISTICAL_TESTING.md",
-      "CAUSAL_TRANSPARENCY.md",
-      "ADVERSARIAL_ROBUSTNESS.md",
       "INSTRUMENTATION.md",
-      "DATASETS.md",
-      "CONTRIBUTING.md",
-      "FAQ.md",
-      "PUBLICATIONS.md",
+      "RESEARCH_METHODOLOGY.md",
       "CHANGELOG.md",
-      "LICENSE",
-      "docs/tinkex_integration/00_architecture_overview.md",
-      "docs/tinkex_integration/01_tinkex_adapter.md",
-      "docs/tinkex_integration/02_lora_training_interface.md",
-      "docs/tinkex_integration/03_ensemble_ml_integration.md",
-      "docs/tinkex_integration/BUILD_PROMPT.md"
+      "LICENSE"
     ]
   end
 
@@ -118,34 +99,12 @@ defmodule CrucibleFramework.MixProject do
     [
       "Getting Started": [
         "README.md",
-        "GETTING_STARTED.md",
-        "FAQ.md"
+        "GETTING_STARTED.md"
       ],
       "Architecture & Design": [
         "ARCHITECTURE.md",
-        "RESEARCH_METHODOLOGY.md"
-      ],
-      "Component Guides": [
-        "ENSEMBLE_GUIDE.md",
-        "HEDGING_GUIDE.md",
-        "STATISTICAL_TESTING.md",
-        "CAUSAL_TRANSPARENCY.md",
-        "ADVERSARIAL_ROBUSTNESS.md",
         "INSTRUMENTATION.md",
-        "DATASETS.md"
-      ],
-      "Tinkex Integration": [
-        "docs/tinkex_integration/00_architecture_overview.md",
-        "docs/tinkex_integration/01_tinkex_adapter.md",
-        "docs/tinkex_integration/02_lora_training_interface.md",
-        "docs/tinkex_integration/03_ensemble_ml_integration.md",
-        "docs/tinkex_integration/BUILD_PROMPT.md"
-      ],
-      Contributing: [
-        "CONTRIBUTING.md"
-      ],
-      Research: [
-        "PUBLICATIONS.md"
+        "RESEARCH_METHODOLOGY.md"
       ],
       "Release Notes": [
         "CHANGELOG.md"
@@ -153,59 +112,16 @@ defmodule CrucibleFramework.MixProject do
     ]
   end
 
-  defp mermaid_head(:html) do
-    """
-    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js"></script>
-    """
-  end
-
-  defp mermaid_head(_), do: ""
-
-  defp mermaid_body(:html) do
-    """
-    <script>
-      let initialized = false;
-
-      window.addEventListener("exdoc:loaded", () => {
-        if (!initialized) {
-          mermaid.initialize({
-            startOnLoad: false,
-            theme: document.body.className.includes("dark") ? "dark" : "default"
-          });
-          initialized = true;
-        }
-
-        let id = 0;
-        for (const codeEl of document.querySelectorAll("pre code.mermaid")) {
-          const preEl = codeEl.parentElement;
-          const graphDefinition = codeEl.textContent;
-          const graphEl = document.createElement("div");
-          const graphId = "mermaid-graph-" + id++;
-          mermaid.render(graphId, graphDefinition).then(({svg, bindFunctions}) => {
-            graphEl.innerHTML = svg;
-            bindFunctions?.(graphEl);
-            preEl.insertAdjacentElement("afterend", graphEl);
-            preEl.remove();
-          });
-        }
-      });
-    </script>
-    """
-  end
-
-  defp mermaid_body(_), do: ""
-
   defp package do
     [
       name: "crucible_framework",
       description: description(),
       files:
-        ~w(README.md GETTING_STARTED.md ARCHITECTURE.md RESEARCH_METHODOLOGY.md ENSEMBLE_GUIDE.md HEDGING_GUIDE.md STATISTICAL_TESTING.md CAUSAL_TRANSPARENCY.md ADVERSARIAL_ROBUSTNESS.md INSTRUMENTATION.md DATASETS.md CONTRIBUTING.md FAQ.md PUBLICATIONS.md CHANGELOG.md mix.exs LICENSE lib assets docs),
+        ~w(README.md ARCHITECTURE.md INSTRUMENTATION.md CHANGELOG.md mix.exs LICENSE lib assets),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
-        "Online documentation" => "https://hexdocs.pm/crucible_framework",
-        "Component Libraries" => "https://github.com/North-Shore-AI"
+        "Online documentation" => "https://hexdocs.pm/crucible_framework"
       },
       maintainers: ["nshkrdotcom"]
     ]

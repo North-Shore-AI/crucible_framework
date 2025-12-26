@@ -6,7 +6,8 @@ if Application.get_env(:crucible_framework, :enable_repo, false) do
   Ecto.Adapters.SQL.Sandbox.mode(CrucibleFramework.Repo, :manual)
 end
 
-Mox.defmock(Crucible.BackendMock, for: Crucible.Backend)
+# Mock for Stage behaviour (used in pipeline runner tests)
+Mox.defmock(Crucible.StageMock, for: Crucible.Stage)
+
+# Mock for Guardrails adapter
 Mox.defmock(Crucible.GuardrailMock, for: Crucible.Stage.Guardrails.Adapter)
-Mox.defmock(Crucible.AnalysisMock, for: Crucible.Analysis.Adapter)
-Mox.defmock(Crucible.Backend.Tinkex.ClientMock, for: Crucible.Backend.Tinkex.Client)

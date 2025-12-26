@@ -2550,13 +2550,20 @@ The Elixir AI Research Framework provides a scientifically-rigorous, highly-conc
 
 ## Further Reading
 
-- [RESEARCH_METHODOLOGY.md](./RESEARCH_METHODOLOGY.md) - The 6 hypotheses and experimental designs
-- [ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md) - Deep dive into ensemble strategies
-- [HEDGING_GUIDE.md](./HEDGING_GUIDE.md) - Request hedging theory and practice
-- [STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md) - Using Bench for rigorous analysis
-- [INSTRUMENTATION.md](./INSTRUMENTATION.md) - TelemetryResearch complete guide
-- [CAUSAL_TRANSPARENCY.md](./CAUSAL_TRANSPARENCY.md) - Transparent AI decision-making
+### CrucibleFramework Documentation
+
 - [GETTING_STARTED.md](./GETTING_STARTED.md) - Installation and first experiment
+- [INSTRUMENTATION.md](./INSTRUMENTATION.md) - Telemetry and observability guide
+- [RESEARCH_METHODOLOGY.md](./RESEARCH_METHODOLOGY.md) - The 6 hypotheses and experimental designs
+
+### Related Package Documentation
+
+The following guides describe functionality that now lives in separate packages within the North-Shore-AI ecosystem:
+
+- **Ensemble Strategies** - See `crucible_ensemble` package
+- **Request Hedging** - See `crucible_hedging` package
+- **Statistical Testing** - See `crucible_bench` package
+- **Causal Transparency** - See `crucible_trace` package
 
 ---
 

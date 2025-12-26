@@ -218,9 +218,8 @@ defmodule Crucible.TraceIntegration do
 
   def save_trace(%Context{trace: chain}, path) when not is_nil(chain) do
     with :ok <- File.mkdir_p(Path.dirname(path)),
-         {:ok, json} <- CrucibleTrace.export(chain, :json),
-         :ok <- File.write(path, json) do
-      :ok
+         {:ok, json} <- CrucibleTrace.export(chain, :json) do
+      File.write(path, json)
     end
   end
 

@@ -1050,8 +1050,8 @@ mix run research/experiments/ensemble_vs_single.exs
 ### Framework Documentation
 
 - Architecture: ARCHITECTURE.md
-- Statistical Methods: STATISTICAL_TESTING.md
-- Ensemble Guide: ENSEMBLE_GUIDE.md
+- Statistical Methods: See `crucible_bench` package
+- Ensemble Guide: See `crucible_ensemble` package
 ```
 
 ### Key Sections to Understand
@@ -2495,8 +2495,8 @@ export DISABLE_RATE_LIMITING=false
 ### Short-Term Goals (Weeks 2-4)
 
 1. **Master Core Libraries**
-   - Read [ENSEMBLE_GUIDE.md](./ENSEMBLE_GUIDE.md) for ensemble deep dive
-   - Read [STATISTICAL_TESTING.md](./STATISTICAL_TESTING.md) for Bench
+   - See `crucible_ensemble` package for ensemble strategies
+   - See `crucible_bench` package for statistical testing
    - Experiment with different configurations
 
 2. **Run Replication Studies**
@@ -2565,17 +2565,21 @@ export DISABLE_RATE_LIMITING=false
 
 ### Library-Specific Guides
 
-- **ENSEMBLE_GUIDE.md** - Deep dive into ensemble voting
-- **HEDGING_GUIDE.md** - Request hedging theory and practice
-- **STATISTICAL_TESTING.md** - Rigorous statistical analysis with Bench
-- **INSTRUMENTATION.md** - TelemetryResearch for complete observability
+- **INSTRUMENTATION.md** - Telemetry for complete observability
 - **DATASETS.md** - Working with benchmark datasets
-- **CAUSAL_TRANSPARENCY.md** - LLM decision provenance
+
+### Related Packages
+
+The following functionality now lives in separate packages:
+
+- **Ensemble voting** - See `crucible_ensemble` package
+- **Request hedging** - See `crucible_hedging` package
+- **Statistical testing** - See `crucible_bench` package
+- **Causal transparency** - See `crucible_trace` package
 
 ### Contributing and Publishing
 
 - **CONTRIBUTING.md** - How to contribute to the framework
-- **PUBLICATIONS.md** - How to cite, paper templates, publication guidelines
 - **FAQ.md** - Frequently asked questions
 
 ### External Resources

@@ -22,6 +22,44 @@ defmodule Crucible.ContextTest do
   end
 
   # ============================================================================
+  # Struct Tests - Verify simplified structure
+  # ============================================================================
+
+  describe "struct fields" do
+    test "creates with required fields", %{ctx: ctx} do
+      assert ctx.experiment_id == "test_exp"
+      assert ctx.run_id == "run_123"
+      assert ctx.experiment.id == "test_exp"
+    end
+
+    test "has correct default values", %{ctx: ctx} do
+      assert ctx.outputs == []
+      assert ctx.metrics == %{}
+      assert ctx.artifacts == %{}
+      assert ctx.trace == nil
+      assert ctx.telemetry_context == %{}
+      assert ctx.assigns == %{}
+    end
+
+    test "does NOT have training-specific fields" do
+      # These fields should not exist in the simplified Context
+      fields = Context.__struct__() |> Map.keys()
+
+      refute :dataset in fields
+      refute :batches in fields
+      refute :examples in fields
+      refute :backend_sessions in fields
+      refute :backend_state in fields
+    end
+
+    test "has exactly 9 fields" do
+      # experiment_id, run_id, experiment, outputs, metrics, artifacts, trace, telemetry_context, assigns
+      fields = Context.__struct__() |> Map.keys() |> Enum.reject(&(&1 == :__struct__))
+      assert length(fields) == 9
+    end
+  end
+
+  # ============================================================================
   # Metrics Management Tests
   # ============================================================================
 
@@ -237,85 +275,32 @@ defmodule Crucible.ContextTest do
   end
 
   # ============================================================================
-  # Query Functions Tests
+  # Assigns for Domain-Specific Data (NEW PATTERN)
   # ============================================================================
 
-  describe "has_data?/1" do
-    test "returns true when dataset and examples present", %{ctx: ctx} do
-      ctx = %Context{ctx | dataset: [1, 2, 3], examples: [1, 2, 3]}
-      assert Context.has_data?(ctx)
+  describe "domain-specific data in assigns" do
+    test "training stages can store dataset in assigns", %{ctx: ctx} do
+      # Instead of ctx.dataset, training stages store in assigns
+      ctx = Context.assign(ctx, :dataset, [%{input: "a", output: "b"}])
+      ctx = Context.assign(ctx, :batches, [[%{input: "a"}]])
+
+      assert ctx.assigns[:dataset] == [%{input: "a", output: "b"}]
+      assert ctx.assigns[:batches] == [[%{input: "a"}]]
     end
 
-    test "returns false when dataset is nil", %{ctx: ctx} do
-      ctx = %Context{ctx | dataset: nil, examples: [1, 2, 3]}
-      refute Context.has_data?(ctx)
+    test "backend sessions can be stored in assigns", %{ctx: ctx} do
+      # Instead of ctx.backend_sessions, training stages store in assigns
+      ctx = Context.assign(ctx, :backend_session, %{id: "session-1"})
+
+      assert ctx.assigns[:backend_session] == %{id: "session-1"}
     end
 
-    test "returns false when examples is nil", %{ctx: ctx} do
-      ctx = %Context{ctx | dataset: [1, 2, 3], examples: nil}
-      refute Context.has_data?(ctx)
-    end
+    test "CNS stages can store domain data in assigns", %{ctx: ctx} do
+      ctx = Context.assign(ctx, :snos, [%{id: 1}, %{id: 2}])
+      ctx = Context.assign(ctx, :surrogates, %{beta_1: 0.5})
 
-    test "returns false when examples is empty", %{ctx: ctx} do
-      ctx = %Context{ctx | dataset: [1, 2, 3], examples: []}
-      refute Context.has_data?(ctx)
-    end
-  end
-
-  describe "has_backend_session?/2" do
-    test "returns true when session exists", %{ctx: ctx} do
-      ctx = %Context{
-        ctx
-        | backend_sessions: %{{:tinkex, "test_exp"} => self()}
-      }
-
-      assert Context.has_backend_session?(ctx, :tinkex)
-    end
-
-    test "returns false when session missing", %{ctx: ctx} do
-      refute Context.has_backend_session?(ctx, :tinkex)
-    end
-
-    test "finds session regardless of experiment ID", %{ctx: ctx} do
-      ctx = %Context{
-        ctx
-        | backend_sessions: %{{:tinkex, "other_exp"} => self()}
-      }
-
-      assert Context.has_backend_session?(ctx, :tinkex)
-    end
-  end
-
-  describe "get_backend_session/2" do
-    test "returns session when exists", %{ctx: ctx} do
-      pid = self()
-
-      ctx = %Context{
-        ctx
-        | backend_sessions: %{{:tinkex, "test_exp"} => pid}
-      }
-
-      assert Context.get_backend_session(ctx, :tinkex) == pid
-    end
-
-    test "returns nil when missing", %{ctx: ctx} do
-      assert Context.get_backend_session(ctx, :tinkex) == nil
-    end
-
-    test "returns first matching session", %{ctx: ctx} do
-      pid1 = self()
-
-      ctx = %Context{
-        ctx
-        | backend_sessions: %{
-            {:tinkex, "exp1"} => pid1,
-            {:tinkex, "exp2"} => :other
-          }
-      }
-
-      # Should return first match (deterministic with sorted keys)
-      result = Context.get_backend_session(ctx, :tinkex)
-      assert result in [pid1, :other]
+      assert ctx.assigns[:snos] == [%{id: 1}, %{id: 2}]
+      assert ctx.assigns[:surrogates] == %{beta_1: 0.5}
     end
   end
 
@@ -399,10 +384,10 @@ defmodule Crucible.ContextTest do
   # ============================================================================
 
   describe "integration scenarios" do
-    test "complete experiment workflow", %{ctx: ctx} do
-      # Load data
-      ctx = %Context{ctx | dataset: [1, 2, 3], examples: [1, 2, 3]}
-      assert Context.has_data?(ctx)
+    test "complete experiment workflow using assigns for domain data", %{ctx: ctx} do
+      # Training stage stores data in assigns (new pattern)
+      ctx = Context.assign(ctx, :dataset, [1, 2, 3])
+      ctx = Context.assign(ctx, :examples, [1, 2, 3])
 
       # Mark stages complete
       ctx =
@@ -422,7 +407,7 @@ defmodule Crucible.ContextTest do
       # Add artifacts
       ctx = Context.put_artifact(ctx, :report, "report.html")
 
-      # Add assigns
+      # Add more assigns
       ctx = Context.assign(ctx, checkpoint: "checkpoint_v1.bin")
 
       # Verify everything
@@ -431,6 +416,7 @@ defmodule Crucible.ContextTest do
       assert length(ctx.outputs) == 2
       assert Context.get_artifact(ctx, :report) == "report.html"
       assert ctx.assigns.checkpoint == "checkpoint_v1.bin"
+      assert ctx.assigns[:dataset] == [1, 2, 3]
     end
 
     test "chaining multiple operations", %{ctx: ctx} do

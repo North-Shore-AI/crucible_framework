@@ -2,14 +2,15 @@ defmodule CrucibleFramework.PersistenceTest do
   use ExUnit.Case, async: false
   @moduletag :integration
 
-  alias CrucibleIR.{BackendRef, Experiment, StageDef}
   alias CrucibleFramework.Persistence
   alias CrucibleFramework.Persistence.{ArtifactRecord, ExperimentRecord}
   alias CrucibleFramework.Repo
+  alias CrucibleIR.{BackendRef, Experiment, StageDef}
+  alias Ecto.Adapters.SQL.Sandbox
 
   setup do
     if Application.get_env(:crucible_framework, :enable_repo, false) do
-      :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+      :ok = Sandbox.checkout(Repo)
       :ok
     else
       {:skip, "CRUCIBLE_DB_ENABLED not set; skipping persistence integration test"}

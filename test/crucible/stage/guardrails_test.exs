@@ -13,16 +13,17 @@ defmodule Crucible.Stage.GuardrailsTest do
     Crucible.GuardrailMock
     |> expect(:scan, fn _examples, _opts -> {:ok, []} end)
 
-    ctx = %Context{
-      experiment_id: "exp",
-      run_id: "run",
-      experiment: %CrucibleIR.Experiment{
-        id: "exp",
-        backend: %CrucibleIR.BackendRef{id: :tinkex},
-        pipeline: []
-      },
-      examples: [%{input: "x", output: "y"}]
-    }
+    ctx =
+      %Context{
+        experiment_id: "exp",
+        run_id: "run",
+        experiment: %CrucibleIR.Experiment{
+          id: "exp",
+          backend: %CrucibleIR.BackendRef{id: :tinkex},
+          pipeline: []
+        }
+      }
+      |> Context.assign(:examples, [%{input: "x", output: "y"}])
 
     assert {:ok, new_ctx} = Guardrails.run(ctx, %{adapter: Crucible.GuardrailMock})
     assert new_ctx.metrics.guardrails.violations == 0
@@ -32,6 +33,23 @@ defmodule Crucible.Stage.GuardrailsTest do
     Crucible.GuardrailMock
     |> expect(:scan, fn _examples, _opts -> {:ok, [%{issue: :pii}]} end)
 
+    ctx =
+      %Context{
+        experiment_id: "exp",
+        run_id: "run",
+        experiment: %CrucibleIR.Experiment{
+          id: "exp",
+          backend: %CrucibleIR.BackendRef{id: :tinkex},
+          pipeline: []
+        }
+      }
+      |> Context.assign(:examples, [%{input: "x", output: "y"}])
+
+    assert {:error, {:guardrail_violation, _}} =
+             Guardrails.run(ctx, %{adapter: Crucible.GuardrailMock, fail_on_violation: true})
+  end
+
+  test "passes when no examples in assigns" do
     ctx = %Context{
       experiment_id: "exp",
       run_id: "run",
@@ -39,11 +57,10 @@ defmodule Crucible.Stage.GuardrailsTest do
         id: "exp",
         backend: %CrucibleIR.BackendRef{id: :tinkex},
         pipeline: []
-      },
-      examples: [%{input: "x", output: "y"}]
+      }
     }
 
-    assert {:error, {:guardrail_violation, _}} =
-             Guardrails.run(ctx, %{adapter: Crucible.GuardrailMock, fail_on_violation: true})
+    assert {:ok, new_ctx} = Guardrails.run(ctx, %{})
+    assert new_ctx == ctx
   end
 end
