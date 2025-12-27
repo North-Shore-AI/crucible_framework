@@ -10,6 +10,14 @@
 
 ---
 
+## What's New (v0.5.1 - 2025-12-27)
+
+- **Optional dependencies**: `crucible_bench` and `crucible_trace` are optional; missing bench errors fast, missing trace disables tracing with a warning
+- **Examples refresh**: New runnable examples plus `examples/run_all.sh` runner
+- **Dependency update**: `crucible_bench` bumped to `~> 0.4.0`
+- **Postgres driver**: `postgrex` minimum version raised to `>= 0.21.1`
+- **Persistence tests**: Integration tests are opt-in via `CRUCIBLE_DB_ENABLED=true`
+
 ## What's New (v0.5.0 - 2025-12-27)
 
 - **BREAKING**: `describe/1` callback is now **required** (removed from `@optional_callbacks`)
@@ -67,7 +75,7 @@ This library focuses purely on orchestration. Domain-specific functionality belo
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.0"}
+    {:crucible_framework, "~> 0.5.1"}
   ]
 end
 ```
@@ -90,6 +98,22 @@ experiment = %CrucibleIR.Experiment{
 ```
 
 ---
+
+## Examples
+
+Runnable scripts live under `examples/`. Start with:
+
+```bash
+mix run examples/01_core_pipeline.exs
+```
+
+Run the full set with:
+
+```bash
+./examples/run_all.sh
+```
+
+See `examples/README.md` for descriptions and optional dependency notes.
 
 ## Core Modules
 
@@ -190,7 +214,7 @@ $ mix crucible.stages --name bench
 | `Crucible.Stage.Validate` | Pre-flight pipeline validation |
 | `Crucible.Stage.DataChecks` | Lightweight data validation (reads from `assigns[:examples]`) |
 | `Crucible.Stage.Guardrails` | Safety checks via adapters |
-| `Crucible.Stage.Bench` | Statistical analysis (crucible_bench) |
+| `Crucible.Stage.Bench` | Statistical analysis (requires `crucible_bench`) |
 | `Crucible.Stage.Report` | Output generation |
 
 ### Crucible.Registry
@@ -278,8 +302,36 @@ config :crucible_framework, CrucibleFramework.Repo,
 ## Dependencies
 
 - **crucible_ir** - Shared experiment IR structs (v0.2.0+)
-- **crucible_bench** - Statistical testing
-- **crucible_trace** - Causal reasoning traces
+- **crucible_bench** - Statistical testing (optional; required for `Crucible.Stage.Bench`)
+- **crucible_trace** - Causal reasoning traces (optional)
+
+## Optional Dependencies
+
+CrucibleFramework runs without the optional packages below; they enable specific features.
+
+### `crucible_bench`
+
+- Enables `Crucible.Stage.Bench` and statistical testing helpers
+- If missing and `:bench` is used, the stage returns `{:error, {:missing_dependency, :crucible_bench}}`
+
+### `crucible_trace`
+
+- Enables trace lifecycle helpers and `enable_trace: true` in the runner
+- If missing, tracing is disabled and a warning is logged; export/load helpers return `nil` or `{:error, {:missing_dependency, :crucible_trace}}`
+
+### Enabling optional packages
+
+```elixir
+def deps do
+  [
+    {:crucible_framework, "~> 0.5.1"},
+    {:crucible_bench, "~> 0.4.0"},
+    {:crucible_trace, "~> 0.3.0"}
+  ]
+end
+```
+
+If you do not need bench or tracing, omit those deps and remove `:bench` from your pipeline (or from `stage_registry`) to keep the core slim. See `examples/02_bench_optional.exs` and `examples/03_trace_optional.exs` for optional-dep usage.
 
 ---
 
@@ -291,6 +343,9 @@ mix deps.get && mix compile
 
 # Tests
 mix test
+
+# Integration tests (persistence; requires CRUCIBLE_DB_ENABLED=true)
+CRUCIBLE_DB_ENABLED=true MIX_ENV=test mix test --include integration
 
 # Quality checks
 mix format

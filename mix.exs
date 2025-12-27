@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.5.1"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -43,12 +43,13 @@ defmodule CrucibleFramework.MixProject do
       {:crucible_ir, "~> 0.2.1"},
 
       # Reliability libraries (for built-in stage wrappers)
-      {:crucible_bench, "~> 0.3.2"},
-      {:crucible_trace, "~> 0.3.0"},
+      # Made optional to break circular dependency with crucible_bench
+      {:crucible_bench, "~> 0.4.0", optional: true},
+      {:crucible_trace, "~> 0.3.0", optional: true},
 
       # Optional persistence
       {:ecto_sql, "~> 3.11", optional: true},
-      {:postgrex, ">= 0.0.0", optional: true},
+      {:postgrex, ">= 0.21.1", optional: true},
 
       # Core utilities
       {:jason, "~> 1.4"},
@@ -86,10 +87,9 @@ defmodule CrucibleFramework.MixProject do
   defp extras do
     [
       "README.md",
-      "GETTING_STARTED.md",
-      "ARCHITECTURE.md",
-      "INSTRUMENTATION.md",
-      "RESEARCH_METHODOLOGY.md",
+      "guides/getting_started.md",
+      "guides/stages.md",
+      "guides/configuration.md",
       "CHANGELOG.md",
       "LICENSE"
     ]
@@ -97,17 +97,10 @@ defmodule CrucibleFramework.MixProject do
 
   defp groups_for_extras do
     [
-      "Getting Started": [
-        "README.md",
-        "GETTING_STARTED.md"
-      ],
-      "Architecture & Design": [
-        "ARCHITECTURE.md",
-        "INSTRUMENTATION.md",
-        "RESEARCH_METHODOLOGY.md"
-      ],
-      "Release Notes": [
-        "CHANGELOG.md"
+      Guides: [
+        "guides/getting_started.md",
+        "guides/stages.md",
+        "guides/configuration.md"
       ]
     ]
   end
@@ -116,8 +109,7 @@ defmodule CrucibleFramework.MixProject do
     [
       name: "crucible_framework",
       description: description(),
-      files:
-        ~w(README.md ARCHITECTURE.md INSTRUMENTATION.md CHANGELOG.md mix.exs LICENSE lib assets),
+      files: ~w(README.md CHANGELOG.md mix.exs LICENSE lib guides assets),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,

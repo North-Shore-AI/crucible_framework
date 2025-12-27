@@ -100,6 +100,8 @@ defmodule Crucible.Pipeline.Runner do
   end
 
   defp run_stage(%StageDef{} = stage_def, ctx_acc, validate_mode) do
+    stage_def = normalize_options(stage_def)
+
     case resolve_stage(stage_def) do
       {:ok, mod} ->
         log_stage(stage_def.name)
@@ -218,4 +220,9 @@ defmodule Crucible.Pipeline.Runner do
   defp put_run(ctx, run_record) do
     %Context{ctx | assigns: Map.put(ctx.assigns, :run_record, run_record)}
   end
+
+  defp normalize_options(%StageDef{options: nil} = stage_def),
+    do: %StageDef{stage_def | options: %{}}
+
+  defp normalize_options(%StageDef{} = stage_def), do: stage_def
 end

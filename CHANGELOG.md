@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-12-27
+
+### Added
+- Refreshed examples to match the current pipeline and IR
+- Added `examples/run_all.sh` to run all examples at once
+- New `guides/` directory with hex-doc-friendly documentation:
+  - `guides/getting_started.md` - Installation and quick start
+  - `guides/stages.md` - Creating custom stages with schema specification
+  - `guides/configuration.md` - Registry, adapters, and optional dependencies
+
+### Changed
+- Made `crucible_bench` and `crucible_trace` optional dependencies to keep the core slim
+- Guarded optional dependencies: bench stage fails fast when `crucible_bench` is missing; tracing disables with a warning when `crucible_trace` is missing
+- Normalized stage options to an empty map when omitted to prevent nil option crashes
+- Report rendering now sanitizes metrics/outputs for JSON encoding
+- Bumped `crucible_bench` to `~> 0.4.0`
+- Raised `postgrex` minimum version to `>= 0.21.1`
+- Made persistence integration tests opt-in via `CRUCIBLE_DB_ENABLED=true` in test config
+- Updated `mix.exs` doc configuration to use `guides/` directory structure
+
+### Removed
+- Removed stale root documentation files that documented separate packages:
+  - `ADVERSARIAL_ROBUSTNESS.md`, `DATASETS.md`, `ENSEMBLE_GUIDE.md`,
+    `HEDGING_GUIDE.md`, `INSTRUMENTATION.md`, `STATISTICAL_TESTING.md`,
+    `CAUSAL_TRANSPARENCY.md` (moved to respective packages)
+  - `GETTING_STARTED.md`, `ARCHITECTURE.md`, `RESEARCH_METHODOLOGY.md` (replaced by `guides/`)
+  - `FAQ.md`, `PUBLICATIONS.md`, `CONTRIBUTING.md` (stale umbrella-era docs)
+
 ## [0.5.0] - 2025-12-27
 
 ### Added

@@ -103,8 +103,17 @@ defmodule Crucible.Stage.Report do
   end
 
   defp to_markdown(%Context{} = ctx) do
-    metrics_json = ctx.metrics |> Jason.encode!() |> Jason.Formatter.pretty_print()
-    outputs_json = ctx.outputs |> Jason.encode!() |> Jason.Formatter.pretty_print()
+    metrics_json =
+      ctx.metrics
+      |> json_safe()
+      |> Jason.encode!()
+      |> Jason.Formatter.pretty_print()
+
+    outputs_json =
+      ctx.outputs
+      |> json_safe()
+      |> Jason.encode!()
+      |> Jason.Formatter.pretty_print()
 
     """
     # Experiment #{ctx.experiment_id}
@@ -120,4 +129,36 @@ defmodule Crucible.Stage.Report do
     ```
     """
   end
+
+  defp json_safe(value) when is_binary(value) or is_boolean(value) or is_number(value), do: value
+  defp json_safe(nil), do: nil
+  defp json_safe(value) when is_atom(value), do: Atom.to_string(value)
+
+  defp json_safe(value) when is_list(value) do
+    Enum.map(value, &json_safe/1)
+  end
+
+  defp json_safe(value) when is_tuple(value) do
+    value
+    |> Tuple.to_list()
+    |> Enum.map(&json_safe/1)
+  end
+
+  defp json_safe(%_{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> json_safe()
+  end
+
+  defp json_safe(%{} = map) do
+    map
+    |> Enum.map(fn {key, val} -> {json_safe_key(key), json_safe(val)} end)
+    |> Map.new()
+  end
+
+  defp json_safe(value), do: inspect(value)
+
+  defp json_safe_key(key) when is_binary(key), do: key
+  defp json_safe_key(key) when is_atom(key), do: Atom.to_string(key)
+  defp json_safe_key(key), do: inspect(key)
 end

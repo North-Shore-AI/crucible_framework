@@ -43,6 +43,19 @@ defmodule Crucible.TraceIntegration do
   alias Crucible.Context
   alias CrucibleTrace
 
+  require Logger
+
+  @compile {:no_warn_undefined, CrucibleTrace}
+  @compile {:no_warn_undefined, CrucibleTrace.Chain}
+
+  if Code.ensure_loaded?(CrucibleTrace) do
+    @type trace_chain :: CrucibleTrace.Chain.t()
+    @type trace_event :: CrucibleTrace.Event.t()
+  else
+    @type trace_chain :: term()
+    @type trace_event :: term()
+  end
+
   @doc """
   Initialize a new trace chain for an experiment.
 
@@ -50,14 +63,19 @@ defmodule Crucible.TraceIntegration do
   """
   @spec init_trace(Context.t(), String.t()) :: Context.t()
   def init_trace(%Context{} = ctx, experiment_name) do
-    metadata = %{
-      experiment_id: ctx.experiment_id,
-      run_id: ctx.run_id
-    }
+    if trace_available?() do
+      metadata = %{
+        experiment_id: ctx.experiment_id,
+        run_id: ctx.run_id
+      }
 
-    chain = CrucibleTrace.new_chain(experiment_name, metadata: metadata)
+      chain = CrucibleTrace.new_chain(experiment_name, metadata: metadata)
 
-    %Context{ctx | trace: chain}
+      %Context{ctx | trace: chain}
+    else
+      warn_missing_trace()
+      ctx
+    end
   end
 
   @doc """
@@ -92,9 +110,13 @@ defmodule Crucible.TraceIntegration do
 
   def emit_event(%Context{trace: chain} = ctx, type, decision, reasoning, opts)
       when not is_nil(chain) do
-    event = CrucibleTrace.create_event(type, decision, reasoning, opts)
-    new_chain = CrucibleTrace.add_event(chain, event)
-    %Context{ctx | trace: new_chain}
+    if trace_available?() do
+      event = CrucibleTrace.create_event(type, decision, reasoning, opts)
+      new_chain = CrucibleTrace.add_event(chain, event)
+      %Context{ctx | trace: new_chain}
+    else
+      ctx
+    end
   end
 
   def emit_event(ctx, _, _, _, _), do: ctx
@@ -186,9 +208,13 @@ defmodule Crucible.TraceIntegration do
   def export_json(%Context{trace: nil}), do: nil
 
   def export_json(%Context{trace: chain}) when not is_nil(chain) do
-    case CrucibleTrace.export(chain, :json) do
-      {:ok, json} -> json
-      _ -> nil
+    if trace_available?() do
+      case CrucibleTrace.export(chain, :json) do
+        {:ok, json} -> json
+        _ -> nil
+      end
+    else
+      nil
     end
   end
 
@@ -203,7 +229,11 @@ defmodule Crucible.TraceIntegration do
   def export_html(%Context{trace: nil}), do: nil
 
   def export_html(%Context{trace: chain}) when not is_nil(chain) do
-    CrucibleTrace.visualize(chain)
+    if trace_available?() do
+      CrucibleTrace.visualize(chain)
+    else
+      nil
+    end
   end
 
   def export_html(_), do: nil
@@ -217,9 +247,13 @@ defmodule Crucible.TraceIntegration do
   def save_trace(%Context{trace: nil}, _path), do: {:error, :no_trace}
 
   def save_trace(%Context{trace: chain}, path) when not is_nil(chain) do
-    with :ok <- File.mkdir_p(Path.dirname(path)),
-         {:ok, json} <- CrucibleTrace.export(chain, :json) do
-      File.write(path, json)
+    if trace_available?() do
+      with :ok <- File.mkdir_p(Path.dirname(path)),
+           {:ok, json} <- CrucibleTrace.export(chain, :json) do
+        File.write(path, json)
+      end
+    else
+      {:error, {:missing_dependency, :crucible_trace}}
     end
   end
 
@@ -230,11 +264,16 @@ defmodule Crucible.TraceIntegration do
 
   Loads a previously saved trace chain from the filesystem.
   """
-  @spec load_trace(String.t()) :: {:ok, CrucibleTrace.Chain.t()} | {:error, term()}
+  @spec load_trace(String.t()) ::
+          {:ok, trace_chain()} | {:error, {:missing_dependency, :crucible_trace} | term()}
   def load_trace(path) do
-    with {:ok, content} <- File.read(path),
-         {:ok, map} <- Jason.decode(content) do
-      {:ok, CrucibleTrace.Chain.from_map(map)}
+    if trace_available?() do
+      with {:ok, content} <- File.read(path),
+           {:ok, map} <- Jason.decode(content) do
+        {:ok, CrucibleTrace.Chain.from_map(map)}
+      end
+    else
+      {:error, {:missing_dependency, :crucible_trace}}
     end
   end
 
@@ -263,7 +302,7 @@ defmodule Crucible.TraceIntegration do
 
   Returns all events of a specific type from the trace chain.
   """
-  @spec filter_events(Context.t(), atom()) :: [CrucibleTrace.Event.t()]
+  @spec filter_events(Context.t(), atom()) :: [trace_event()]
   def filter_events(%Context{trace: nil}, _type), do: []
 
   def filter_events(%Context{trace: chain}, type) when not is_nil(chain) do
@@ -275,7 +314,7 @@ defmodule Crucible.TraceIntegration do
   @doc """
   Get the most recent event from the trace.
   """
-  @spec last_event(Context.t()) :: CrucibleTrace.Event.t() | nil
+  @spec last_event(Context.t()) :: trace_event() | nil
   def last_event(%Context{trace: nil}), do: nil
 
   def last_event(%Context{trace: chain}) when not is_nil(chain) do
@@ -332,4 +371,14 @@ defmodule Crucible.TraceIntegration do
   end
 
   defp summarize_results(results), do: results
+
+  defp trace_available? do
+    Code.ensure_loaded?(CrucibleTrace)
+  end
+
+  defp warn_missing_trace do
+    Logger.warning(
+      "crucible_trace dependency not available; tracing disabled. Add {:crucible_trace, \"~> 0.3.0\"} or set enable_trace: false"
+    )
+  end
 end

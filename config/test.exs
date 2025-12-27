@@ -9,6 +9,8 @@ config :crucible_framework, CrucibleFramework.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
-config :crucible_framework, :enable_repo, false
+enable_repo? = System.get_env("CRUCIBLE_DB_ENABLED") == "true"
+
+config :crucible_framework, :enable_repo, enable_repo?
 
 config :logger, level: :warning

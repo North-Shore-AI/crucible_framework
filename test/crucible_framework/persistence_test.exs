@@ -1,6 +1,11 @@
 defmodule CrucibleFramework.PersistenceTest do
   use ExUnit.Case, async: false
   @moduletag :integration
+  @repo_enabled Application.compile_env(:crucible_framework, :enable_repo, false)
+
+  if not @repo_enabled do
+    @moduletag skip: "CRUCIBLE_DB_ENABLED is not true; skipping persistence integration test"
+  end
 
   alias CrucibleFramework.Persistence
   alias CrucibleFramework.Persistence.{ArtifactRecord, ExperimentRecord}
@@ -9,12 +14,8 @@ defmodule CrucibleFramework.PersistenceTest do
   alias Ecto.Adapters.SQL.Sandbox
 
   setup do
-    if Application.get_env(:crucible_framework, :enable_repo, false) do
-      :ok = Sandbox.checkout(Repo)
-      :ok
-    else
-      {:skip, "CRUCIBLE_DB_ENABLED not set; skipping persistence integration test"}
-    end
+    :ok = Sandbox.checkout(Repo)
+    :ok
   end
 
   test "upserts experiment and creates run records" do

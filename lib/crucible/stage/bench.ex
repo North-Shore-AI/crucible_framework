@@ -39,34 +39,43 @@ defmodule Crucible.Stage.Bench do
   alias CrucibleBench
   alias CrucibleBench.Stats
 
+  @compile {:no_warn_undefined, CrucibleBench}
+  @compile {:no_warn_undefined, CrucibleBench.Stats}
+
   @default_alpha 0.05
   @default_tests [:ttest]
 
   @impl true
   def run(%Context{experiment: experiment} = ctx, opts) do
-    # Get config from experiment.reliability.stats if available, otherwise use opts
-    {alpha, tests, bench_opts} = extract_config(experiment, opts)
+    case ensure_bench_available() do
+      :ok ->
+        # Get config from experiment.reliability.stats if available, otherwise use opts
+        {alpha, tests, bench_opts} = extract_config(experiment, opts)
 
-    Logger.debug("Running statistical benchmarking with tests: #{inspect(tests)}")
+        Logger.debug("Running statistical benchmarking with tests: #{inspect(tests)}")
 
-    # Extract data for analysis from context
-    data_groups = extract_data_groups(ctx, opts)
+        # Extract data for analysis from context
+        data_groups = extract_data_groups(ctx, opts)
 
-    if data_groups == %{} do
-      Logger.warning("No data available for statistical analysis")
-      {:ok, Context.put_metric(ctx, :bench, %{no_data: true})}
-    else
-      # Run statistical analysis based on configured tests
-      results = run_statistical_tests(data_groups, tests, alpha, bench_opts)
+        if data_groups == %{} do
+          Logger.warning("No data available for statistical analysis")
+          {:ok, Context.put_metric(ctx, :bench, %{no_data: true})}
+        else
+          # Run statistical analysis based on configured tests
+          results = run_statistical_tests(data_groups, tests, alpha, bench_opts)
 
-      bench_metrics = %{
-        tests_run: tests,
-        alpha: alpha,
-        results: results,
-        timestamp: DateTime.utc_now()
-      }
+          bench_metrics = %{
+            tests_run: tests,
+            alpha: alpha,
+            results: results,
+            timestamp: DateTime.utc_now()
+          }
 
-      {:ok, Context.put_metric(ctx, :bench, bench_metrics)}
+          {:ok, Context.put_metric(ctx, :bench, bench_metrics)}
+        end
+
+      {:error, _} = error ->
+        error
     end
   rescue
     error ->
@@ -96,6 +105,18 @@ defmodule Crucible.Stage.Bench do
   # ============================================================================
   # Configuration Extraction
   # ============================================================================
+
+  defp ensure_bench_available do
+    if Code.ensure_loaded?(CrucibleBench) do
+      :ok
+    else
+      Logger.error(
+        "crucible_bench dependency not available; add {:crucible_bench, \"~> 0.4.0\"} or remove :bench from the pipeline"
+      )
+
+      {:error, {:missing_dependency, :crucible_bench}}
+    end
+  end
 
   defp extract_config(experiment, opts) do
     stats_config = get_stats_config(experiment)
