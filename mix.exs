@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.4.0"
+  @version "0.4.1"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -40,7 +40,7 @@ defmodule CrucibleFramework.MixProject do
   defp deps do
     [
       # Core IR (shared experiment definitions)
-      {:crucible_ir, "~> 0.2.0"},
+      {:crucible_ir, "~> 0.2.1"},
 
       # Reliability libraries (for built-in stage wrappers)
       {:crucible_bench, "~> 0.3.2"},

@@ -346,10 +346,11 @@ defmodule Crucible.Stage.BenchTest do
     test "returns stage description" do
       description = Bench.describe(%{tests: [:ttest, :bootstrap], alpha: 0.05})
 
-      assert description.stage == :bench
+      assert description.name == :bench
       assert description.description =~ "Statistical benchmarking"
-      assert description.tests == [:ttest, :bootstrap]
-      assert description.alpha == 0.05
+      assert :tests in description.optional
+      assert :alpha in description.optional
+      assert description.types[:alpha] == :float
     end
   end
 end

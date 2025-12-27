@@ -66,11 +66,16 @@ defmodule Crucible.Stage.Guardrails do
   end
 
   @impl true
-  def describe(opts) do
+  def describe(_opts) do
     %{
-      stage: :guardrails,
-      description: "Applies guardrail checks to examples",
-      fail_on_violation: Map.get(opts, :fail_on_violation, false)
+      name: :guardrails,
+      description: "Applies safety guardrail checks to examples via configurable adapter",
+      required: [],
+      optional: [:adapter, :fail_on_violation],
+      types: %{
+        adapter: :module,
+        fail_on_violation: :boolean
+      }
     }
   end
 

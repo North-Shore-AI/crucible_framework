@@ -11,6 +11,17 @@ defmodule Crucible.Stage.Report do
   require Logger
 
   @impl true
+  def describe(_opts) do
+    %{
+      name: :report,
+      description: "Generates and persists reports from experiment outputs in configured formats",
+      required: [],
+      optional: [],
+      types: %{}
+    }
+  end
+
+  @impl true
   def run(%Context{experiment: experiment} = ctx, _opts) do
     specs = experiment.outputs || []
 

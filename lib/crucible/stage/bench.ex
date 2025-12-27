@@ -75,12 +75,21 @@ defmodule Crucible.Stage.Bench do
   end
 
   @impl true
-  def describe(opts) do
+  def describe(_opts) do
     %{
-      stage: :bench,
-      description: "Statistical benchmarking using crucible_bench",
-      tests: Map.get(opts, :tests, @default_tests),
-      alpha: Map.get(opts, :alpha, @default_alpha)
+      name: :bench,
+      description: "Statistical benchmarking and hypothesis testing using crucible_bench",
+      required: [],
+      optional: [:tests, :alpha, :data_source, :options],
+      types: %{
+        tests:
+          {:list,
+           {:enum,
+            [:ttest, :paired_ttest, :bootstrap, :wilcoxon, :mann_whitney, :anova, :kruskal_wallis]}},
+        alpha: :float,
+        data_source: {:enum, [:outputs, :metrics, {:custom, :function}]},
+        options: :map
+      }
     }
   end
 

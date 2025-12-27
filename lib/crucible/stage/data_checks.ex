@@ -60,11 +60,17 @@ defmodule Crucible.Stage.DataChecks do
   end
 
   @impl true
-  def describe(opts) do
+  def describe(_opts) do
     %{
-      stage: :data_checks,
-      description: "Lightweight data validation",
-      required_fields: Map.get(opts, :required_fields, [:input, :output])
+      name: :data_checks,
+      description: "Lightweight validation of examples stored in context.assigns[:examples]",
+      required: [],
+      optional: [:required_fields, :fail_fast, :checker],
+      types: %{
+        required_fields: {:list, :atom},
+        fail_fast: :boolean,
+        checker: :module
+      }
     }
   end
 

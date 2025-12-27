@@ -64,8 +64,13 @@ defmodule Crucible.Stage.Validate do
   @impl true
   def describe(_opts) do
     %{
-      stage: :validate,
-      description: "Pre-flight validation of pipeline stages"
+      name: :validate,
+      description: "Pre-flight validation that all pipeline stages can be resolved and loaded",
+      required: [],
+      optional: [:strict],
+      types: %{
+        strict: :boolean
+      }
     }
   end
 

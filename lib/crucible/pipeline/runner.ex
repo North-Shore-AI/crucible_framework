@@ -1,6 +1,42 @@
 defmodule Crucible.Pipeline.Runner do
   @moduledoc """
   Executes experiment pipelines stage-by-stage.
+
+  ## Location and Ownership
+
+  This is the **authoritative** pipeline runner for the Crucible ecosystem.
+  It lives in `crucible_framework` and is the only component that executes
+  experiment pipelines. `crucible_ir` defines specs only; it does not execute.
+
+  ## Public Entrypoint
+
+  Users should call `CrucibleFramework.run/2` rather than this module directly:
+
+      {:ok, ctx} = CrucibleFramework.run(experiment)
+
+  ## Pipeline Execution
+
+  The runner:
+
+  1. Initializes a `%Crucible.Context{}` from the experiment
+  2. Optionally persists run state to the database
+  3. Executes each `%CrucibleIR.StageDef{}` in sequence
+  4. Resolves stage modules via `Crucible.Registry` or explicit `:module` field
+  5. Calls `stage_module.run(context, opts)` for each stage
+  6. Marks stages complete and emits trace events
+  7. Finalizes the run with success or failure status
+
+  ## Stage Resolution
+
+  Stages are resolved in order:
+
+  1. If `StageDef.module` is set, use that module directly
+  2. Otherwise, look up `StageDef.name` in `Crucible.Registry`
+
+  ## Trace Integration
+
+  When `:enable_trace` is passed, the runner emits stage lifecycle events
+  via `Crucible.TraceIntegration` for observability and debugging.
   """
 
   require Logger

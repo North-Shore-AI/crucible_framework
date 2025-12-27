@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-12-26
+
+### Added
+
+#### Stage Contract Enforcement
+- **`Crucible.Stage` Behaviour Documentation**: Comprehensive documentation for the stage contract including:
+  - Runner location clarification (`crucible_framework` owns execution, `crucible_ir` defines specs only)
+  - Required `run/2` callback semantics
+  - Policy-required `describe/1` callback with schema specification
+  - Type specifications for option schemas (`:string`, `:integer`, `{:struct, Module}`, `{:enum, [values]}`, etc.)
+
+- **Pipeline Runner Documentation**: Enhanced `Crucible.Pipeline.Runner` moduledoc clarifying:
+  - Authoritative runner location in `crucible_framework`
+  - Pipeline execution flow and stage resolution
+  - Trace integration for observability
+
+#### Built-in Stage Schemas
+All built-in stages now implement proper `describe/1` schemas:
+- `Crucible.Stage.Validate` - validation options schema
+- `Crucible.Stage.Bench` - statistical testing options schema
+- `Crucible.Stage.DataChecks` - data validation options schema
+- `Crucible.Stage.Guardrails` - guardrail adapter options schema
+- `Crucible.Stage.Report` - report generation options schema (new)
+
+### Changed
+- **`describe/1` Schema Format**: Updated all built-in stages to return standardized schema:
+  ```elixir
+  %{
+    name: :stage_name,
+    description: "Human-readable description",
+    required: [:key1, :key2],
+    optional: [:key3, :key4],
+    types: %{key1: :string, key2: {:struct, Module}}
+  }
+  ```
+
+### Ecosystem Updates
+The following external repositories were updated to implement `describe/1`:
+
+- **crucible_train**: SupervisedTrain, Distillation, DPOTrain, RLTrain stages
+- **crucible_model_registry**: Register, Promote stages
+- **crucible_deployment**: Deploy, Promote, Rollback stages (also added `@behaviour Crucible.Stage`)
+- **crucible_feedback**: CheckTriggers, ExportFeedback stages
+
+### Notes
+- The `describe/1` callback remains optional at the behaviour level but is **required by policy**
+- Stages own their options schema and validation; IR remains opaque
+- External stages (crucible_bench, crucible_ensemble, crucible_hedging, ExFairness) already had `describe/1`
+
 ## [0.4.0] - 2025-12-23
 
 ### Changed

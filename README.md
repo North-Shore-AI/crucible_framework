@@ -10,6 +10,16 @@
 
 ---
 
+## What's New (v0.4.1 - 2025-12-26)
+
+- **Stage Contract**: Enforced `describe/1` policy for all stage implementations
+- **Enhanced Documentation**: Comprehensive `Crucible.Stage` behaviour docs with schema specification
+- **Runner Documentation**: Clarified that `Crucible.Pipeline.Runner` is the authoritative runner
+- **Schema Types**: Defined type specifications for stage option schemas
+- **Built-in Stages**: Updated all built-in stages with proper `describe/1` schemas
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete migration guide.
+
 ## What's New (v0.4.0 - 2025-12-25)
 
 - **BREAKING**: Simplified to pure orchestration layer (~2,000 LOC from ~5,300 LOC)
@@ -46,7 +56,7 @@ This library focuses purely on orchestration. Domain-specific functionality belo
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.4.0"}
+    {:crucible_framework, "~> 0.4.1"}
   ]
 end
 ```
