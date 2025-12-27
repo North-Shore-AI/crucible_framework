@@ -10,6 +10,19 @@
 
 ---
 
+## What's New (v0.5.0 - 2025-12-27)
+
+- **BREAKING**: `describe/1` callback is now **required** (removed from `@optional_callbacks`)
+- **Schema Module**: New `Crucible.Stage.Schema` for canonical schema definition and validation
+- **Schema Normalizer**: New `Crucible.Stage.Schema.Normalizer` for legacy schema conversion
+- **Options Validator**: New `Crucible.Stage.Validator` for runtime options validation
+- **Registry Enhancements**: `list_stages_with_schemas/0` and `stage_schema/1` for schema access
+- **Mix Task**: New `mix crucible.stages` command for stage discovery
+- **Pipeline Validation**: Opt-in `validate_options: :warn | :error` mode in runner
+- **Conformance Tests**: Comprehensive tests for all framework stages
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete migration guide.
+
 ## What's New (v0.4.1 - 2025-12-26)
 
 - **Stage Contract**: Enforced `describe/1` policy for all stage implementations
@@ -17,8 +30,6 @@
 - **Runner Documentation**: Clarified that `Crucible.Pipeline.Runner` is the authoritative runner
 - **Schema Types**: Defined type specifications for stage option schemas
 - **Built-in Stages**: Updated all built-in stages with proper `describe/1` schemas
-
-See [CHANGELOG.md](CHANGELOG.md) for the complete migration guide.
 
 ## What's New (v0.4.0 - 2025-12-25)
 
@@ -56,7 +67,7 @@ This library focuses purely on orchestration. Domain-specific functionality belo
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.4.1"}
+    {:crucible_framework, "~> 0.5.0"}
   ]
 end
 ```
@@ -117,7 +128,7 @@ ctx = Crucible.Context.mark_stage_complete(ctx, :data_load)
 
 ### Crucible.Stage
 
-Behaviour for pipeline stages:
+Behaviour for pipeline stages. All stages must implement both `run/2` and `describe/1`:
 
 ```elixir
 defmodule MyApp.Stage.CustomStage do
@@ -130,10 +141,46 @@ defmodule MyApp.Stage.CustomStage do
   end
 
   @impl true
-  def describe(opts) do
-    %{stage: :custom, description: "My custom stage"}
+  def describe(_opts) do
+    %{
+      name: :custom,
+      description: "My custom stage",
+      required: [:input_path],
+      optional: [:format, :verbose],
+      types: %{
+        input_path: :string,
+        format: {:enum, [:json, :csv]},
+        verbose: :boolean
+      },
+      defaults: %{
+        format: :json,
+        verbose: false
+      }
+    }
   end
 end
+```
+
+### Stage Contract
+
+All stages must implement `describe/1` returning a canonical schema:
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `name` | Yes | atom | Stage identifier |
+| `description` | Yes | string | Human-readable description |
+| `required` | Yes | list of atoms | Required option keys |
+| `optional` | Yes | list of atoms | Optional option keys |
+| `types` | Yes | map | Type specifications for options |
+| `defaults` | No | map | Default values for optional fields |
+| `version` | No | string | Stage version |
+| `__extensions__` | No | map | Domain-specific metadata |
+
+Use `mix crucible.stages` to list available stages and their schemas:
+
+```bash
+$ mix crucible.stages
+$ mix crucible.stages --name bench
 ```
 
 ### Built-in Stages

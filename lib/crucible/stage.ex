@@ -30,10 +30,10 @@ defmodule Crucible.Stage do
   - Must not mutate global state or bypass persistence helpers
   - Should be network-mockable and testable in isolation
 
-  ## Policy Callback: `describe/1`
+  ## Required Callback: `describe/1`
 
-  While optional at the behaviour level, `describe/1` is **required by policy**
-  for all stage implementations. It provides a discoverable schema for stage options:
+  The `describe/1` callback is **required** for all stage implementations.
+  It provides a discoverable schema for stage options:
 
       @impl true
       def describe(_opts) do
@@ -104,9 +104,26 @@ defmodule Crucible.Stage do
   @doc """
   Returns a schema describing the stage's purpose and options.
 
-  This callback is optional at the behaviour level but **required by policy**
-  for all stage implementations. See module documentation for the expected schema.
+  This callback is **required** for all stage implementations.
+  See module documentation for the expected schema format.
+
+  ## Return Value
+
+  Must return a map conforming to `Crucible.Stage.Schema.t()`:
+
+      %{
+        name: :stage_name,
+        description: "Human-readable description",
+        required: [:key1],
+        optional: [:key2, :key3],
+        types: %{
+          key1: :string,
+          key2: :integer,
+          key3: {:enum, [:a, :b, :c]}
+        }
+      }
+
+  See `Crucible.Stage.Schema` for the complete schema specification.
   """
   @callback describe(opts :: opts()) :: map()
-  @optional_callbacks describe: 1
 end

@@ -5,6 +5,107 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-12-27
+
+### Added
+
+#### Schema Infrastructure
+- **`Crucible.Stage.Schema`**: Canonical schema definition module with:
+  - `validate/1` - Validates schema conformance
+  - `valid_type_spec?/1` - Type specification validation
+  - Complete type system: primitives, structs, enums, lists, maps, functions, unions, tuples
+
+- **`Crucible.Stage.Schema.Normalizer`**: Legacy schema conversion module
+  - Converts `:stage` key to `:name`
+  - Converts string names to atoms
+  - Adds missing `required`, `optional`, `types` fields
+  - Moves non-core fields to `__extensions__`
+
+- **`Crucible.Stage.Validator`**: Runtime options validation
+  - Validates required options presence
+  - Type-checks option values against schema
+  - Supports all type specifications from `Schema`
+
+#### Registry Enhancements
+- **`Crucible.Registry.list_stages_with_schemas/0`**: Returns all stages with their schemas
+- **`Crucible.Registry.stage_schema/1`**: Gets normalized schema for a specific stage
+- **`Crucible.Registry.list_stages/0`**: Lists all registered stage names
+
+#### Pipeline Runner Validation
+- **`validate_options` option**: Opt-in validation mode for `CrucibleFramework.run/2`
+  - `:off` (default) - No validation
+  - `:warn` - Log warnings but continue
+  - `:error` - Fail on validation errors
+
+#### Mix Task
+- **`mix crucible.stages`**: CLI for stage discovery
+  - Lists all registered stages with descriptions
+  - `--name <stage>` shows detailed schema for a stage
+  - Shows required/optional fields and type specifications
+
+#### Conformance Testing
+- **`Crucible.Stage.ConformanceTest`**: Comprehensive tests for all framework stages
+  - Existence tests (describe/1, run/2)
+  - Schema structure validation
+  - Type coherence checks
+  - Required/optional overlap detection
+
+### Changed
+
+- **`describe/1` is now REQUIRED** - Removed from `@optional_callbacks`
+- **`Crucible.Stage` moduledoc** - Updated to reflect required `describe/1`
+
+### Breaking Changes
+
+- All stages **must** implement `describe/1` callback
+- Stages without `describe/1` will cause compilation warnings
+
+### Migration Guide
+
+#### Add describe/1 to Your Stages
+
+**Before (0.4.x):**
+```elixir
+defmodule MyStage do
+  @behaviour Crucible.Stage
+
+  @impl true
+  def run(ctx, opts), do: {:ok, ctx}
+  # describe/1 was optional
+end
+```
+
+**After (0.5.0):**
+```elixir
+defmodule MyStage do
+  @behaviour Crucible.Stage
+
+  @impl true
+  def run(ctx, opts), do: {:ok, ctx}
+
+  @impl true
+  def describe(_opts) do
+    %{
+      name: :my_stage,
+      description: "What this stage does",
+      required: [],
+      optional: [:option1],
+      types: %{option1: :string}
+    }
+  end
+end
+```
+
+#### Enable Options Validation (Optional)
+
+```elixir
+# Warn on invalid options
+CrucibleFramework.run(experiment, validate_options: :warn)
+
+# Fail on invalid options
+CrucibleFramework.run(experiment, validate_options: :error)
+```
+
 ## [0.4.1] - 2025-12-26
 
 ### Added

@@ -10,16 +10,32 @@ defmodule Crucible.Pipeline.RunnerTest do
   defmodule StageOne do
     @behaviour Crucible.Stage
     alias Crucible.Context
+
     @impl true
     def run(%Context{} = ctx, _opts),
       do: {:ok, %Context{ctx | assigns: Map.put(ctx.assigns, :one, true)}}
+
+    @impl true
+    def describe(_opts),
+      do: %{name: :one, description: "Test stage one", required: [], optional: [], types: %{}}
   end
 
   defmodule StageFail do
     @behaviour Crucible.Stage
     alias Crucible.Context
+
     @impl true
     def run(%Context{} = _ctx, _opts), do: {:error, :nope}
+
+    @impl true
+    def describe(_opts),
+      do: %{
+        name: :fail,
+        description: "Test stage that fails",
+        required: [],
+        optional: [],
+        types: %{}
+      }
   end
 
   setup do

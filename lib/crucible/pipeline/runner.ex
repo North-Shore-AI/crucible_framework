@@ -22,9 +22,10 @@ defmodule Crucible.Pipeline.Runner do
   2. Optionally persists run state to the database
   3. Executes each `%CrucibleIR.StageDef{}` in sequence
   4. Resolves stage modules via `Crucible.Registry` or explicit `:module` field
-  5. Calls `stage_module.run(context, opts)` for each stage
-  6. Marks stages complete and emits trace events
-  7. Finalizes the run with success or failure status
+  5. Optionally validates stage options against `describe/1` schema
+  6. Calls `stage_module.run(context, opts)` for each stage
+  7. Marks stages complete and emits trace events
+  8. Finalizes the run with success or failure status
 
   ## Stage Resolution
 
@@ -32,6 +33,17 @@ defmodule Crucible.Pipeline.Runner do
 
   1. If `StageDef.module` is set, use that module directly
   2. Otherwise, look up `StageDef.name` in `Crucible.Registry`
+
+  ## Options Validation
+
+  The runner supports opt-in validation of stage options against the schema
+  returned by each stage's `describe/1` callback:
+
+      CrucibleFramework.run(experiment, validate_options: :error)
+
+  - `:off` (default) - No validation
+  - `:warn` - Log warnings for invalid options but continue execution
+  - `:error` - Fail immediately on invalid options
 
   ## Trace Integration
 
@@ -42,16 +54,29 @@ defmodule Crucible.Pipeline.Runner do
   require Logger
 
   alias Crucible.{Context, Registry, TraceIntegration}
+  alias Crucible.Stage.Validator
   alias CrucibleFramework.Persistence
   alias CrucibleIR.{Experiment, StageDef}
 
   @doc """
   Runs an experiment, optionally persisting run state.
+
+  ## Options
+
+  - `:run_id` - Custom run ID (defaults to UUID)
+  - `:persist` - Whether to persist run state (default: true)
+  - `:enable_trace` - Enable trace integration (default: false)
+  - `:assigns` - Initial context assigns (default: %{})
+  - `:validate_options` - Options validation mode:
+    - `:off` (default) - No validation
+    - `:warn` - Log warnings but continue
+    - `:error` - Fail on validation errors
   """
   @spec run(Experiment.t(), keyword()) :: {:ok, Context.t()} | {:error, term()}
   def run(%Experiment{} = experiment, opts \\ []) do
     run_id = Keyword.get(opts, :run_id, Ecto.UUID.generate())
     persist? = Keyword.get(opts, :persist, true)
+    validate_mode = Keyword.get(opts, :validate_options, :off)
 
     {run_record, ctx} =
       case persist? do
@@ -68,18 +93,32 @@ defmodule Crucible.Pipeline.Runner do
     result =
       Enum.reduce_while(experiment.pipeline, {:ok, ctx}, fn %StageDef{} = stage_def,
                                                             {:ok, ctx_acc} ->
-        run_stage(stage_def, ctx_acc)
+        run_stage(stage_def, ctx_acc, validate_mode)
       end)
 
     finalize(result, run_record)
   end
 
-  defp run_stage(%StageDef{} = stage_def, ctx_acc) do
+  defp run_stage(%StageDef{} = stage_def, ctx_acc, validate_mode) do
     case resolve_stage(stage_def) do
       {:ok, mod} ->
         log_stage(stage_def.name)
         ctx_acc = TraceIntegration.emit_stage_start(ctx_acc, stage_def.name, stage_def.options)
-        execute_stage(mod, stage_def, ctx_acc)
+
+        case validate_stage_options(mod, stage_def, validate_mode) do
+          :ok ->
+            execute_stage(mod, stage_def, ctx_acc)
+
+          {:error, errors} ->
+            ctx_acc =
+              TraceIntegration.emit_stage_failed(
+                ctx_acc,
+                stage_def.name,
+                {:invalid_options, errors}
+              )
+
+            {:halt, {:error, {stage_def.name, {:invalid_options, errors}}, ctx_acc}}
+        end
 
       {:error, reason} ->
         ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
@@ -113,6 +152,31 @@ defmodule Crucible.Pipeline.Runner do
       TraceIntegration.init_trace(ctx, experiment.id)
     else
       ctx
+    end
+  end
+
+  defp validate_stage_options(_mod, _stage_def, :off), do: :ok
+
+  defp validate_stage_options(mod, stage_def, mode) when mode in [:warn, :error] do
+    if function_exported?(mod, :describe, 1) do
+      schema = mod.describe(stage_def.options || %{})
+
+      case Validator.validate(stage_def.options, schema) do
+        :ok ->
+          :ok
+
+        {:error, errors} when mode == :warn ->
+          Logger.warning(
+            "Stage #{stage_def.name} options validation warnings: #{Enum.join(errors, ", ")}"
+          )
+
+          :ok
+
+        {:error, errors} ->
+          {:error, errors}
+      end
+    else
+      :ok
     end
   end
 
