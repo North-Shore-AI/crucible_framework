@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-12-28
+
+### Changed
+- **Oban-style repo injection**: Configure `repo: MyApp.Repo` instead of auto-starting internal Repo
+- **`start_repo` replaces `enable_repo`**: Defaults to `false`; set `true` for legacy behavior
+- Added `CrucibleFramework.repo/0` and `repo!/0` accessors
+- Bumped `crucible_trace` to `~> 0.3.1`, `telemetry` to `~> 1.3`
+
 ## [0.5.1] - 2025-12-27
 
 ### Added

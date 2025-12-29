@@ -1,8 +1,13 @@
 import Config
 
+# Note: Repo is NOT started by default. Host applications should:
+# 1. Configure: config :crucible_framework, repo: MyApp.Repo
+# 2. Start their own Repo in their supervision tree
+#
+# For standalone use, set start_repo: true and configure the Repo below.
 config :crucible_framework,
   ecto_repos: [CrucibleFramework.Repo],
-  enable_repo: true,
+  start_repo: false,
   stage_registry: %{
     validate: Crucible.Stage.Validate,
     data_checks: Crucible.Stage.DataChecks,

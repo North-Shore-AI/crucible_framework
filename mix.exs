@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.5.1"
+  @version "0.5.2"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -45,7 +45,7 @@ defmodule CrucibleFramework.MixProject do
       # Reliability libraries (for built-in stage wrappers)
       # Made optional to break circular dependency with crucible_bench
       {:crucible_bench, "~> 0.4.0", optional: true},
-      {:crucible_trace, "~> 0.3.0", optional: true},
+      {:crucible_trace, "~> 0.3.1", optional: true},
 
       # Optional persistence
       {:ecto_sql, "~> 3.11", optional: true},
@@ -53,7 +53,7 @@ defmodule CrucibleFramework.MixProject do
 
       # Core utilities
       {:jason, "~> 1.4"},
-      {:telemetry, "~> 1.2"},
+      {:telemetry, "~> 1.3"},
 
       # Development and Testing
       {:mox, "~> 1.1", only: :test},

@@ -4,8 +4,9 @@ defmodule CrucibleFramework.Persistence do
   """
 
   alias CrucibleFramework.Persistence.{ArtifactRecord, ExperimentRecord, RunRecord}
-  alias CrucibleFramework.Repo
   alias CrucibleIR.Experiment
+
+  defp repo, do: CrucibleFramework.repo()
 
   @doc """
   Inserts or updates an experiment definition.
@@ -23,7 +24,7 @@ defmodule CrucibleFramework.Persistence do
 
     changeset = ExperimentRecord.changeset(%ExperimentRecord{}, attrs)
 
-    Repo.insert(changeset,
+    repo().insert(changeset,
       on_conflict: {:replace, [:definition, :owner, :tags, :metadata, :updated_at]},
       conflict_target: :id,
       returning: true
@@ -45,7 +46,7 @@ defmodule CrucibleFramework.Persistence do
 
       %RunRecord{}
       |> RunRecord.changeset(attrs)
-      |> Repo.insert()
+      |> repo().insert()
     end
   end
 
@@ -66,7 +67,7 @@ defmodule CrucibleFramework.Persistence do
       outputs: outputs,
       metadata: metadata
     })
-    |> Repo.update()
+    |> repo().update()
   end
 
   @doc """
@@ -82,7 +83,7 @@ defmodule CrucibleFramework.Persistence do
 
     %ArtifactRecord{}
     |> ArtifactRecord.changeset(attrs)
-    |> Repo.insert()
+    |> repo().insert()
   end
 
   defp stringify_keys(map) when is_map(map) do

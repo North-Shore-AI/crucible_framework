@@ -10,6 +10,13 @@
 
 ---
 
+## What's New (v0.5.2 - 2025-12-28)
+
+- **Oban-style Repo injection**: Host applications now provide their own Repo via `config :crucible_framework, repo: MyApp.Repo`
+- **No auto-start by default**: Repo is NOT started automatically; set `start_repo: true` for legacy behavior
+- **New `repo/0` and `repo!/0` functions**: Access the configured Repo module programmatically
+- **Dependency updates**: `crucible_trace` bumped to `~> 0.3.1`, `telemetry` to `~> 1.3`
+
 ## What's New (v0.5.1 - 2025-12-27)
 
 - **Optional dependencies**: `crucible_bench` and `crucible_trace` are optional; missing bench errors fast, missing trace disables tracing with a warning
@@ -277,10 +284,14 @@ config :crucible_framework,
 
 ## Configuration
 
+### Database Configuration (Oban Pattern)
+
+CrucibleFramework uses dynamic repo injection - your host application provides the Repo:
+
 ```elixir
+# config/config.exs
 config :crucible_framework,
-  ecto_repos: [CrucibleFramework.Repo],
-  enable_repo: true,  # Set false to disable persistence
+  repo: MyApp.Repo,  # Required: host app's Repo module
   stage_registry: %{
     validate: Crucible.Stage.Validate,
     data_checks: Crucible.Stage.DataChecks,
@@ -289,6 +300,41 @@ config :crucible_framework,
     report: Crucible.Stage.Report
   },
   guardrail_adapter: Crucible.Stage.Guardrails.Noop
+
+# Your host app's Repo configuration
+config :my_app, MyApp.Repo,
+  database: "my_app_dev",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+```
+
+Then start your Repo in your application's supervision tree:
+
+```elixir
+# lib/my_app/application.ex
+children = [
+  MyApp.Repo,
+  # ... other children
+]
+```
+
+### Migrations
+
+Copy migrations from `deps/crucible_framework/priv/repo/migrations/` or run:
+
+```bash
+mix crucible_framework.install
+```
+
+### Legacy Mode
+
+For backwards compatibility, set `start_repo: true` to auto-start `CrucibleFramework.Repo`:
+
+```elixir
+config :crucible_framework,
+  start_repo: true,
+  ecto_repos: [CrucibleFramework.Repo]
 
 config :crucible_framework, CrucibleFramework.Repo,
   database: "crucible_dev",
