@@ -217,7 +217,7 @@ defmodule Crucible.Pipeline.Runner do
     {:error, {stage, reason, ctx}}
   end
 
-  defp put_run(ctx, run_record) do
+  defp put_run(%Context{} = ctx, run_record) do
     %Context{ctx | assigns: Map.put(ctx.assigns, :run_record, run_record)}
   end
 

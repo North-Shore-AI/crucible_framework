@@ -11,7 +11,6 @@ defmodule CrucibleFramework.MixProject do
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      preferred_cli_env: [dialyzer: :dev],
       aliases: aliases(),
       deps: deps(),
       docs: docs(),
@@ -31,6 +30,12 @@ defmodule CrucibleFramework.MixProject do
     [
       mod: {CrucibleFramework.Application, []},
       extra_applications: [:logger, :telemetry]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [dialyzer: :dev]
     ]
   end
 
