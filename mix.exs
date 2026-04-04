@@ -114,7 +114,7 @@ defmodule CrucibleFramework.MixProject do
     [
       name: "crucible_framework",
       description: description(),
-      files: ~w(README.md CHANGELOG.md mix.exs LICENSE lib guides assets assets/elixir_ai_ecosystem.svg),
+      files: ~w(README.md CHANGELOG.md mix.exs LICENSE lib guides assets),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
