@@ -1,7 +1,7 @@
 defmodule CrucibleFramework.MixProject do
   use Mix.Project
 
-  @version "0.5.2"
+  @version "0.5.3"
   @source_url "https://github.com/North-Shore-AI/crucible_framework"
 
   def project do
@@ -62,7 +62,7 @@ defmodule CrucibleFramework.MixProject do
 
       # Development and Testing
       {:mox, "~> 1.1", only: :test},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
@@ -114,7 +114,7 @@ defmodule CrucibleFramework.MixProject do
     [
       name: "crucible_framework",
       description: description(),
-      files: ~w(README.md CHANGELOG.md mix.exs LICENSE lib guides assets),
+      files: ~w(README.md CHANGELOG.md mix.exs LICENSE lib guides assets assets/elixir_ai_ecosystem.svg),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
