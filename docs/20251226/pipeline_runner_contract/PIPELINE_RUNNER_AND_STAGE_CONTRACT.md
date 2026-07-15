@@ -19,8 +19,7 @@ Clarify where the pipeline runner lives and define a consistent contract for sta
 
 ### Behaviour
 - `Crucible.Stage` defines the runtime contract.
-- Required callback: `run(context, opts)`.
-- Optional callback: `describe(opts)`.
+- Required callbacks: `run(context, opts)` and `describe(opts)`.
 
 ### Required Semantics
 - `run/2` must return `{:ok, %Crucible.Context{}}` or `{:error, reason}`.
@@ -33,7 +32,7 @@ Clarify where the pipeline runner lives and define a consistent contract for sta
 - Stages may accept typed configs (e.g., `%CrucibleIR.Training.Config{}`) but must normalize internally.
 
 ### Describe Contract (Required by Policy)
-Every stage module should implement `describe/1` to provide a discoverable schema:
+Every stage module must implement `describe/1` to provide a discoverable schema:
 
 ```
 %{
@@ -62,9 +61,20 @@ All modules that implement `Crucible.Stage` across the ecosystem, including:
 
 If a repo has no stage modules, no action is required.
 
-## 5) Acceptance Criteria
+## 5) Plan Adapter (Jido.Plan)
+
+- `Crucible.PlanAdapter` compiles `Jido.Plan` (or plan-shaped structs) into
+  ordered `CrucibleIR.StageDef` lists.
+- `Crucible.Stage.PlanStep` executes plan steps inside the pipeline runner.
+
+## 6) Lineage Emission
+
+- The runner emits LineageIR-style spans and artifacts for each stage execution.
+- Span and artifact records are stored in `context.assigns` for inspection or
+  forwarding to a lineage sink.
+
+## 7) Acceptance Criteria
 
 - Runner location is documented and unambiguous.
 - Stage contracts are discoverable via `describe/1` in all stage modules.
 - IR remains free of execution logic; framework owns execution.
-

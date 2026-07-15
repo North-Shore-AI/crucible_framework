@@ -53,7 +53,7 @@ defmodule Crucible.Pipeline.Runner do
 
   require Logger
 
-  alias Crucible.{Context, Registry, TraceIntegration}
+  alias Crucible.{Context, LineageIntegration, Registry, TraceIntegration}
   alias Crucible.Stage.Validator
   alias CrucibleFramework.Persistence
   alias CrucibleIR.{Experiment, StageDef}
@@ -66,6 +66,8 @@ defmodule Crucible.Pipeline.Runner do
   - `:run_id` - Custom run ID (defaults to UUID)
   - `:persist` - Whether to persist run state (default: true)
   - `:enable_trace` - Enable trace integration (default: false)
+  - `:enable_lineage` - Emit lineage spans/artifacts (default: true)
+  - `:trace_id` - Override lineage trace_id (default: generated UUID)
   - `:assigns` - Initial context assigns (default: %{})
   - `:validate_options` - Options validation mode:
     - `:off` (default) - No validation
@@ -105,6 +107,7 @@ defmodule Crucible.Pipeline.Runner do
     case resolve_stage(stage_def) do
       {:ok, mod} ->
         log_stage(stage_def.name)
+        ctx_acc = LineageIntegration.emit_stage_start(ctx_acc, stage_def)
         ctx_acc = TraceIntegration.emit_stage_start(ctx_acc, stage_def.name, stage_def.options)
 
         case validate_stage_options(mod, stage_def, validate_mode) do
@@ -112,6 +115,13 @@ defmodule Crucible.Pipeline.Runner do
             execute_stage(mod, stage_def, ctx_acc)
 
           {:error, errors} ->
+            ctx_acc =
+              LineageIntegration.emit_stage_failed(
+                ctx_acc,
+                stage_def,
+                {:invalid_options, errors}
+              )
+
             ctx_acc =
               TraceIntegration.emit_stage_failed(
                 ctx_acc,
@@ -123,19 +133,33 @@ defmodule Crucible.Pipeline.Runner do
         end
 
       {:error, reason} ->
+        ctx_acc = LineageIntegration.emit_stage_failed(ctx_acc, stage_def, reason)
         ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
         {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
     end
   end
 
   defp execute_stage(mod, stage_def, ctx_acc) do
+    before_artifacts = ctx_acc.artifacts
+
     case mod.run(ctx_acc, stage_def.options) do
       {:ok, new_ctx} ->
         new_ctx = Context.mark_stage_complete(new_ctx, stage_def.name)
+        new_ctx = LineageIntegration.restore_tracking(new_ctx, ctx_acc)
+
+        new_ctx =
+          LineageIntegration.emit_stage_complete(
+            new_ctx,
+            stage_def,
+            new_ctx.metrics,
+            artifact_delta(before_artifacts, new_ctx.artifacts)
+          )
+
         new_ctx = TraceIntegration.emit_stage_complete(new_ctx, stage_def.name, new_ctx.metrics)
         {:cont, {:ok, new_ctx}}
 
       {:error, reason} ->
+        ctx_acc = LineageIntegration.emit_stage_failed(ctx_acc, stage_def, reason)
         ctx_acc = TraceIntegration.emit_stage_failed(ctx_acc, stage_def.name, reason)
         {:halt, {:error, {stage_def.name, reason}, ctx_acc}}
     end
@@ -143,15 +167,17 @@ defmodule Crucible.Pipeline.Runner do
 
   defp build_context(experiment, run_id, opts) do
     ctx = %Context{
-      experiment_id: experiment.id,
+      experiment_id: to_string(experiment.id),
       run_id: run_id,
       experiment: experiment,
       assigns: Keyword.get(opts, :assigns, %{})
     }
 
+    ctx = LineageIntegration.init_trace(ctx, opts)
+
     # Initialize tracing if enabled
     if Keyword.get(opts, :enable_trace, false) do
-      TraceIntegration.init_trace(ctx, experiment.id)
+      TraceIntegration.init_trace(ctx, to_string(experiment.id))
     else
       ctx
     end
@@ -225,4 +251,9 @@ defmodule Crucible.Pipeline.Runner do
     do: %StageDef{stage_def | options: %{}}
 
   defp normalize_options(%StageDef{} = stage_def), do: stage_def
+
+  defp artifact_delta(before_artifacts, after_artifacts) do
+    after_artifacts
+    |> Enum.filter(fn {key, value} -> Map.get(before_artifacts, key) != value end)
+  end
 end

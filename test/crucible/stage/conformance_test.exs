@@ -14,7 +14,8 @@ defmodule Crucible.Stage.ConformanceTest do
     Crucible.Stage.Report,
     Crucible.Stage.Guardrails,
     Crucible.Stage.DataChecks,
-    Crucible.Stage.Validate
+    Crucible.Stage.Validate,
+    Crucible.Stage.PlanStep
   ]
 
   describe "framework stages existence" do

@@ -49,6 +49,17 @@ Run all examples:
 - Enables `enable_trace: true` only when `crucible_trace` is installed
 - Shows trace event counts and export status
 
+---
+
+### 04_plan_pipeline.exs
+
+**Purpose:** Plan-driven pipeline demo using `Jido.Plan`.
+
+**Highlights:**
+- Builds a small plan DAG and compiles it with `Crucible.PlanAdapter`
+- Executes plan steps with `Crucible.Stage.PlanStep`
+- Prints `plan_results` and lineage span counts
+
 ## Optional Dependencies
 
 Some examples enable extra functionality when these deps are available:
@@ -56,9 +67,10 @@ Some examples enable extra functionality when these deps are available:
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.1"},
+    {:crucible_framework, "~> 0.5.3"},
     {:crucible_bench, "~> 0.4.0"},
-    {:crucible_trace, "~> 0.3.0"}
+    {:crucible_trace, "~> 0.3.1"},
+    {:jido_action, "~> 1.0"}
   ]
 end
 ```

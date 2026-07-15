@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-01-07
+
+### Added
+- `Crucible.PlanAdapter` for compiling `Jido.Plan` DAGs into `StageDef` lists
+- `Crucible.Stage.PlanStep` for executing plan steps in pipeline runs
+- Lineage emission for stage execution (spans + artifacts stored in context assigns)
+- Plan-driven pipeline example (`examples/04_plan_pipeline.exs`)
+
+### Changed
+- Runner options now include `enable_lineage` and `trace_id`
+- Docs/guides updated for plan-driven pipelines and pipeline field usage
+
 ## [0.5.2] - 2025-12-28
 
 ### Changed

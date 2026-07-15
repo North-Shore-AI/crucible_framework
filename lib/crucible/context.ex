@@ -15,7 +15,7 @@ defmodule Crucible.Context do
   * `metrics` - Map of metrics collected during execution
   * `artifacts` - Map of artifacts (files, reports, etc.)
   * `trace` - Optional trace chain for observability
-  * `telemetry_context` - Telemetry metadata
+  * `telemetry_context` - Telemetry metadata (trace_id, lineage settings, etc.)
   * `assigns` - Extension point for domain-specific data
 
   ## Helper Functions

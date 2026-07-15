@@ -140,7 +140,7 @@ Then use by name in experiments:
 
 ```elixir
 %Experiment{
-  stages: [
+  pipeline: [
     %StageDef{name: :transform, options: %{multiplier: 2}},
     %StageDef{name: :analyze}
   ]
@@ -153,7 +153,7 @@ Alternatively, specify the module directly:
 
 ```elixir
 %Experiment{
-  stages: [
+  pipeline: [
     %StageDef{module: MyApp.Stages.Transform, options: %{multiplier: 2}}
   ]
 }
@@ -192,6 +192,11 @@ CrucibleFramework.run(experiment,
 - `:off` - No validation (default, fastest)
 - `:warn` - Log warnings but continue
 - `:error` - Fail immediately on validation errors
+
+## Plan-Driven Pipelines
+
+`Crucible.Stage.PlanStep` executes plan steps compiled by `Crucible.PlanAdapter`.
+This is the recommended path for running `Jido.Plan` DAGs in a Crucible pipeline.
 
 ## Testing Stages
 

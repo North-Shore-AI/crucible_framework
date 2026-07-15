@@ -9,8 +9,8 @@ Add `crucible_framework` to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.0"},
-    {:crucible_ir, "~> 0.1.0"}  # Required for experiment/stage definitions
+    {:crucible_framework, "~> 0.5.3"},
+    {:crucible_ir, "~> 0.2.1"}  # Required for experiment/stage definitions
   ]
 end
 ```
@@ -33,10 +33,10 @@ alias CrucibleIR.{Experiment, StageDef}
 experiment = %Experiment{
   id: "my-first-experiment",
   name: "My First Experiment",
-  stages: [
+  pipeline: [
     %StageDef{name: :validate},
     %StageDef{name: :data_checks, options: %{required_fields: [:input, :expected]}},
-    %StageDef{name: :report, options: %{format: :markdown, sink: :stdout}}
+    %StageDef{name: :report}
   ]
 }
 ```
@@ -60,6 +60,8 @@ CrucibleFramework.run(experiment,
   run_id: "custom-run-id",           # Custom run identifier (default: UUID)
   persist: false,                     # Disable database persistence
   enable_trace: true,                 # Enable causal tracing (requires crucible_trace)
+  enable_lineage: true,               # Emit lineage spans/artifacts (default: true)
+  trace_id: "trace-uuid",             # Optional lineage trace id
   assigns: %{examples: data},         # Initial context data
   validate_options: :warn             # :off, :warn, or :error
 )
@@ -67,7 +69,8 @@ CrucibleFramework.run(experiment,
 
 ## Built-in Stages
 
-Crucible Framework includes five built-in stages:
+Crucible Framework includes the core stages below, plus `Crucible.Stage.PlanStep`
+for plan-driven pipelines:
 
 | Stage | Purpose |
 |-------|---------|
@@ -77,13 +80,43 @@ Crucible Framework includes five built-in stages:
 | `:bench` | Statistical analysis (requires `crucible_bench`) |
 | `:report` | Generate and output reports |
 
+## Plan-Driven Pipelines (Jido.Plan)
+
+Use `Crucible.PlanAdapter` to compile a `Jido.Plan` into pipeline stages:
+
+```elixir
+alias Jido.Plan
+alias Crucible.PlanAdapter
+alias CrucibleIR.{BackendRef, Experiment}
+
+plan =
+  Plan.new()
+  |> Plan.add(:fetch, MyApp.Actions.Fetch)
+  |> Plan.add(:summarize, MyApp.Actions.Summarize, depends_on: :fetch)
+
+{:ok, stage_defs} = PlanAdapter.to_stage_defs(plan)
+
+experiment = %Experiment{
+  id: "plan-demo",
+  backend: %BackendRef{id: :noop},
+  pipeline: stage_defs
+}
+
+{:ok, ctx} = CrucibleFramework.run(experiment, persist: false)
+
+IO.inspect(ctx.assigns.plan_results)
+```
+
+`Crucible.Stage.PlanStep` executes each action using `Jido.Exec` when available,
+falling back to `action.run/2` if `jido_action` is not installed.
+
 ### Example: Validation Pipeline
 
 ```elixir
 experiment = %Experiment{
   id: "validation-check",
   name: "Validate Pipeline Configuration",
-  stages: [
+  pipeline: [
     %StageDef{name: :validate, options: %{strict: true}}
   ]
 }
@@ -97,15 +130,20 @@ experiment = %Experiment{
 experiment = %Experiment{
   id: "data-processing",
   name: "Process and Report",
-  stages: [
+  pipeline: [
     %StageDef{name: :data_checks, options: %{
       required_fields: [:id, :input, :expected],
       fail_fast: false
     }},
-    %StageDef{name: :report, options: %{
-      format: :json,
-      sink: {:file, "output/results.json"}
-    }}
+    %StageDef{name: :report}
+  ],
+  outputs: [
+    %CrucibleIR.OutputSpec{
+      name: :summary,
+      formats: [:json],
+      sink: :file,
+      options: %{path: "output/results.json"}
+    }
   ]
 }
 

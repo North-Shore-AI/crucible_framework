@@ -13,3 +13,4 @@ run_example() {
 run_example "01_core_pipeline.exs"
 run_example "02_bench_optional.exs"
 run_example "03_trace_optional.exs"
+run_example "04_plan_pipeline.exs"

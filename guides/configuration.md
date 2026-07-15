@@ -60,7 +60,7 @@ defmodule MyApp.GuardrailAdapter do
   @behaviour Crucible.Stage.Guardrails.Adapter
 
   @impl true
-  def check(examples, opts) do
+  def scan(examples, opts) do
     # Return {:ok, []} for no violations
     # Return {:ok, violations} with list of violation maps
     {:ok, []}
@@ -80,7 +80,7 @@ The `:bench` stage requires `crucible_bench`:
 
 ```elixir
 # mix.exs
-{:crucible_bench, "~> 0.1.0"}
+{:crucible_bench, "~> 0.4.0"}
 ```
 
 Without it, the stage returns:
@@ -94,7 +94,7 @@ Enable tracing with `crucible_trace`:
 
 ```elixir
 # mix.exs
-{:crucible_trace, "~> 0.1.0"}
+{:crucible_trace, "~> 0.3.1"}
 ```
 
 Enable per-run:
@@ -104,6 +104,18 @@ CrucibleFramework.run(experiment, enable_trace: true)
 ```
 
 Without the dependency, tracing is disabled with a warning.
+
+### jido_action (Plan Execution)
+
+Enable plan execution helpers with `jido_action`:
+
+```elixir
+# mix.exs
+{:jido_action, "~> 1.0"}
+```
+
+`Crucible.Stage.PlanStep` will use `Jido.Exec` when available and fall back
+to `action.run/2` otherwise.
 
 ## Environment-Specific Config
 

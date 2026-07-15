@@ -10,6 +10,12 @@
 
 ---
 
+## What's New (v0.5.3 - 2026-01-07)
+
+- **Plan adapter**: compile `Jido.Plan` into `StageDef` lists via `Crucible.PlanAdapter`
+- **PlanStep stage**: execute plan steps as pipeline stages
+- **Lineage emission**: runner emits LineageIR-style spans and artifacts per stage
+
 ## What's New (v0.5.2 - 2025-12-28)
 
 - **Oban-style Repo injection**: Host applications now provide their own Repo via `config :crucible_framework, repo: MyApp.Repo`
@@ -82,7 +88,7 @@ This library focuses purely on orchestration. Domain-specific functionality belo
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.1"}
+    {:crucible_framework, "~> 0.5.3"}
   ]
 end
 ```
@@ -103,6 +109,44 @@ experiment = %CrucibleIR.Experiment{
 
 {:ok, ctx} = CrucibleFramework.run(experiment)
 ```
+
+## Plan-Driven Pipelines (Jido.Plan)
+
+Crucible can compile `Jido.Plan` DAGs into pipeline stages:
+
+```elixir
+alias Jido.Plan
+alias Crucible.PlanAdapter
+alias CrucibleIR.{BackendRef, Experiment}
+
+plan =
+  Plan.new()
+  |> Plan.add(:fetch, MyApp.Actions.Fetch)
+  |> Plan.add(:summarize, MyApp.Actions.Summarize, depends_on: :fetch)
+
+{:ok, stage_defs} = PlanAdapter.to_stage_defs(plan)
+
+experiment = %Experiment{
+  id: "plan-demo",
+  backend: %BackendRef{id: :noop},
+  pipeline: stage_defs
+}
+
+{:ok, ctx} = CrucibleFramework.run(experiment, persist: false)
+
+# Action outputs are stored per step name
+IO.inspect(ctx.assigns.plan_results)
+```
+
+The default stage module (`Crucible.Stage.PlanStep`) uses `Jido.Exec` when
+available and falls back to calling `action.run/2` directly.
+
+## Lineage Emission
+
+The pipeline runner emits LineageIR-style spans and artifacts per stage. The
+records are stored in `ctx.assigns[:lineage_spans]` and
+`ctx.assigns[:lineage_artifacts]` for inspection or forwarding to a sink.
+Disable with `enable_lineage: false` when running pipelines.
 
 ---
 
@@ -223,6 +267,7 @@ $ mix crucible.stages --name bench
 | `Crucible.Stage.Guardrails` | Safety checks via adapters |
 | `Crucible.Stage.Bench` | Statistical analysis (requires `crucible_bench`) |
 | `Crucible.Stage.Report` | Output generation |
+| `Crucible.Stage.PlanStep` | Executes plan steps compiled from `Jido.Plan` |
 
 ### Crucible.Registry
 
@@ -365,14 +410,20 @@ CrucibleFramework runs without the optional packages below; they enable specific
 - Enables trace lifecycle helpers and `enable_trace: true` in the runner
 - If missing, tracing is disabled and a warning is logged; export/load helpers return `nil` or `{:error, {:missing_dependency, :crucible_trace}}`
 
+### `jido_action`
+
+- Provides `Jido.Plan` builders and `Jido.Exec` execution
+- When missing, `Crucible.Stage.PlanStep` falls back to calling `action.run/2`
+
 ### Enabling optional packages
 
 ```elixir
 def deps do
   [
-    {:crucible_framework, "~> 0.5.1"},
+    {:crucible_framework, "~> 0.5.3"},
     {:crucible_bench, "~> 0.4.0"},
-    {:crucible_trace, "~> 0.3.0"}
+    {:crucible_trace, "~> 0.3.1"},
+    {:jido_action, "~> 1.0"}
   ]
 end
 ```
