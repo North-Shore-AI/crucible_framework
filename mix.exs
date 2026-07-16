@@ -45,7 +45,7 @@ defmodule CrucibleFramework.MixProject do
   defp deps do
     [
       # Core IR (shared experiment definitions)
-      {:crucible_ir, "~> 0.2.1"},
+      {:crucible_ir, "~> 0.3.0", override: true},
 
       # Reliability libraries (for built-in stage wrappers)
       # Made optional to break circular dependency with crucible_bench
@@ -53,16 +53,16 @@ defmodule CrucibleFramework.MixProject do
       {:crucible_trace, "~> 0.3.1", optional: true},
 
       # Optional persistence
-      {:ecto_sql, "~> 3.11", optional: true},
-      {:postgrex, ">= 0.21.1", optional: true},
+      {:ecto_sql, "~> 3.14", optional: true},
+      {:postgrex, "~> 0.22.3", optional: true},
 
       # Core utilities
       {:jason, "~> 1.4"},
-      {:telemetry, "~> 1.3"},
+      {:telemetry, "~> 1.4"},
 
       # Development and Testing
-      {:mox, "~> 1.1", only: :test},
-      {:ex_doc, "~> 0.40.0", only: :dev, runtime: false},
+      {:mox, "~> 1.2", only: :test},
+      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
